@@ -20,6 +20,14 @@ export default function Topbar({ onMenu, user }) {
         <strong>{title}</strong>
         <span>{subtitle}</span>
       </div>
+      <div className="topbar-ticker" aria-label="Live civic updates">
+        <span className="topbar-ticker-live"><i /> LIVE</span>
+        <div className="topbar-ticker-track">
+          <span>YOUR CITY. YOUR VOICE.</span><b>✦</b><span>SPOT IT. REPORT IT.</span><b>✦</b>
+          <span>TOGETHER, WE IMPROVE.</span><b>✦</b><span>YOUR CITY. YOUR VOICE.</span><b>✦</b>
+          <span>SPOT IT. REPORT IT.</span><b>✦</b><span>TOGETHER, WE IMPROVE.</span><b>✦</b>
+        </div>
+      </div>
       <div className="top-actions">
         <button className="search-mini"><Search size={17} /><span>Search reports</span></button>
         <button className="icon-btn notification"><Bell size={19} /><i /></button>
