@@ -22,6 +22,13 @@ export default function Sidebar({ open, onClose }) {
             </NavLink>
           ))}
         </nav>
+        <div className="nav-section-label nav-section-secondary">OPERATIONS</div>
+        <nav className="nav-list">
+          <NavLink to="/issues" onClick={onClose}><Icon name="ClipboardList" size={19} /><span>All issues</span></NavLink>
+          <NavLink to="/my-reports" onClick={onClose}><Icon name="FileCheck2" size={19} /><span>My reports</span></NavLink>
+          <NavLink to="/analytics" onClick={onClose}><Icon name="BarChart3" size={19} /><span>Analytics</span></NavLink>
+          <NavLink to="/about" onClick={onClose}><Icon name="Info" size={19} /><span>About platform</span></NavLink>
+        </nav>
         <div className="sidebar-bottom">
           <div className="mission-card">
             <div className="mission-icon"><Icon name="ShieldCheck" size={19} /></div>

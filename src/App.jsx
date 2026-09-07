@@ -11,6 +11,10 @@ import MapPage from './pages/MapPage'
 import FeedPage from './pages/FeedPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import ProfilePage from './pages/ProfilePage'
+import IssueDetailsPage from './pages/IssueDetailsPage'
+import IssuesPage from './pages/IssuesPage'
+import AnalyticsPage from './pages/AnalyticsPage'
+import AboutPage from './pages/AboutPage'
 
 import {
   getReports,
@@ -18,6 +22,7 @@ import {
   saveReports,
   saveUser,
 } from './services/localStore'
+import { findPossibleDuplicates, normalizeIssue } from './services/issueService'
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -29,10 +34,15 @@ export default function App() {
   }, [reports])
 
   function addReport(report) {
-    const nextReport = {
+    const nextReport = normalizeIssue({
       ...report,
       id: `ND-${1043 + reports.length}`,
       reporter: 'You',
+    }, reports.length)
+    const duplicates = findPossibleDuplicates(nextReport, reports)
+    if (duplicates.length) {
+      nextReport.duplicateClusterId = duplicates[0].duplicateClusterId || duplicates[0].issueId
+      nextReport.possibleDuplicate = true
     }
 
     const nextReports = [nextReport, ...reports]
@@ -99,6 +109,13 @@ export default function App() {
               />
             }
           />
+          <Route path="/issues" element={<IssuesPage reports={reports} />} />
+          <Route path="/my-reports" element={<IssuesPage reports={reports} mineOnly />} />
+          <Route path="/issues/:issueId" element={<IssueDetailsPage reports={reports} />} />
+          <Route path="/analytics" element={<AnalyticsPage reports={reports} />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/officer/*" element={<AnalyticsPage reports={reports} officerMode />} />
+          <Route path="/admin/*" element={<AnalyticsPage reports={reports} adminMode />} />
 
           <Route
             path="*"

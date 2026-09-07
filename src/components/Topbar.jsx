@@ -8,6 +8,10 @@ const titles = {
   '/feed': ['Civic Feed', 'See what citizens are reporting'],
   '/leaderboard': ['Nagar Leaderboard', 'Every verified report counts'],
   '/profile': ['Citizen Profile', 'Your civic contribution'],
+  '/issues': ['Issue Operations', 'Search and track civic issues'],
+  '/my-reports': ['My Reports', 'Track your submitted issues'],
+  '/analytics': ['Civic Analytics', 'Operational intelligence from live reports'],
+  '/about': ['About Nagar Drishti', 'Report, understand, act'],
 }
 
 export default function Topbar({ onMenu, user }) {

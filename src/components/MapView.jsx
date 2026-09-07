@@ -25,7 +25,7 @@ export default function MapView({ reports, height = '100%' }) {
             <Popup>
               <strong>{report.category}</strong><br />
               {report.address}<br />
-              <button className="popup-link" onClick={() => navigate('/map')}>View civic map</button>
+              <button className="popup-link" onClick={() => navigate(`/issues/${report.issueId || report.id}`)}>View issue</button>
             </Popup>
           </CircleMarker>
         ))}

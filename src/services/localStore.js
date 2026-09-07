@@ -1,6 +1,7 @@
+import { normalizeIssue } from './issueService'
+
 const REPORT_KEY = 'nagar_drishti_reports_v1'
 const USER_KEY = 'nagar_drishti_user_v1'
-
 const seedReports = [
   {
     id: 'ND-1042',
@@ -67,9 +68,10 @@ const seedReports = [
 export function getReports() {
   try {
     const saved = localStorage.getItem(REPORT_KEY)
-    return saved ? JSON.parse(saved) : seedReports
+    const reports = saved ? JSON.parse(saved) : seedReports
+    return reports.map((report, index) => normalizeIssue(report, index))
   } catch {
-    return seedReports
+    return seedReports.map((report, index) => normalizeIssue(report, index))
   }
 }
 
