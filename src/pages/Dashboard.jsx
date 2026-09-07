@@ -1,102 +1,93 @@
 import { Link } from 'react-router-dom'
-import {
-  ArrowRight,
-  Camera,
-  CheckCircle2,
-  ChevronRight,
-  Clock3,
-  Construction,
-  Droplets,
-  Lightbulb,
-  MapPin,
-  MessageSquareText,
-  Recycle,
-  ShieldCheck,
-  Sparkles,
-  Users,
-} from 'lucide-react'
+import { ArrowRight, Camera, CheckCircle2, Clock3, MapPinned, Plus, ShieldCheck, Sparkles, TrendingUp, Users, Zap, AlertTriangle } from 'lucide-react'
+import StatCard from '../components/StatCard'
+import IssueCard from '../components/IssueCard'
 import MapView from '../components/MapView'
 
-const categories = [
-  { label: 'Roads & potholes', detail: 'Report damaged roads and unsafe surfaces', icon: Construction, tone: 'blue' },
-  { label: 'Waste & cleanliness', detail: 'Flag overflowing bins and litter hotspots', icon: Recycle, tone: 'green' },
-  { label: 'Street lighting', detail: 'Help keep public spaces safe after dark', icon: Lightbulb, tone: 'amber' },
-  { label: 'Water & drainage', detail: 'Report leaks, flooding, and blocked drains', icon: Droplets, tone: 'cyan' },
-]
+const activity = [42, 58, 51, 68, 61, 76, 84, 72, 91, 87, 96, 82]
 
-export default function Dashboard({ reports }) {
-  const resolved = reports.filter(report => report.status === 'Resolved').length
-  const active = reports.filter(report => ['Pending', 'In Progress'].includes(report.status)).length
-  const citizens = new Set(reports.map(report => report.reporter).filter(Boolean)).size + 127
+export default function Dashboard({ reports, user }) {
+  const verified = reports.filter(r => r.verified).length
+  const active = reports.filter(r => ['Pending', 'In Progress'].includes(r.status)).length
+  const resolved = reports.filter(r => r.status === 'Resolved').length
+  const highPriority = reports.filter(r => r.priority === 'High').length
+  const score = Math.min(98, 82 + verified + resolved)
+  const citizens = new Set(reports.map(r => r.reporter).filter(Boolean)).size + 127
 
   return (
-    <div className="public-dashboard">
-      <header className="public-header">
-        <Link className="public-brand" to="/">
-          <span className="public-brand-mark"><MapPin size={18} /></span>
-          <span><strong>NAGAR DRISHTI</strong><small>EVERYTHING CIVIC</small></span>
-        </Link>
-        <nav className="public-nav">
-          <a href="#services">Services</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="#impact">Our impact</a>
-          <Link to="/map">Live map</Link>
-        </nav>
-        <div className="public-header-actions">
-          <Link className="public-help" to="/profile">Help & support</Link>
-          <Link className="public-header-button" to="/scan">Report an issue</Link>
+    <div className="page dashboard-page">
+      <section className="hero dashboard-hero">
+        <div className="hero-copy">
+          <div className="eyebrow"><span className="live-dot" /> LIVE CIVIC NETWORK <span className="live-pill">● ONLINE</span></div>
+          <h1>Make your city <em>visible.</em></h1>
+          <p>Nagar Drishti turns citizens into a real-time sensing network. Scan a civic problem, verify the AI, and send it to the right department.</p>
+          <div className="hero-actions">
+            <Link className="primary-btn" to="/scan"><Camera size={18} /> Report an issue <ArrowRight size={17} /></Link>
+            <Link className="secondary-btn" to="/map"><MapPinned size={17} /> Explore map</Link>
+          </div>
         </div>
-      </header>
+        <div className="hero-orbit">
+          <div className="orbit orbit-1" /><div className="orbit orbit-2" />
+          <div className="scan-core"><ShieldCheck size={42} /><span>AI<br />CIVIC<br />VISION</span></div>
+          <div className="orbit-tag tag-a"><CheckCircle2 size={14} /> Verified</div>
+          <div className="orbit-tag tag-b"><Sparkles size={14} /> AI 94%</div>
+          <div className="orbit-tag tag-c"><MapPinned size={14} /> GPS</div>
+        </div>
+      </section>
 
-      <main>
-        <section className="public-hero">
-          <div className="public-hero-copy">
-            <span className="public-eyebrow"><i /> CITIZEN-POWERED CITY SERVICES</span>
-            <h1>Make your city <em>better, together.</em></h1>
-            <p>Report local issues, follow every update, and help your city teams take action where it matters most.</p>
-            <div className="public-hero-actions">
-              <Link className="public-primary-button" to="/scan"><Camera size={18} /> Report an issue <ArrowRight size={16} /></Link>
-              <Link className="public-secondary-button" to="/map">Explore civic map <ChevronRight size={16} /></Link>
-            </div>
-            <div className="public-trust-row">
-              <span><CheckCircle2 size={15} /> GPS verified</span>
-              <span><ShieldCheck size={15} /> AI assisted</span>
-              <span><Clock3 size={15} /> Quick response</span>
-            </div>
+      <section className="civic-score-row">
+        <div className="civic-score-card panel">
+          <div className="score-ring"><strong>{score}</strong><span>/100</span></div>
+          <div><span className="panel-kicker">CITY PULSE</span><h2>Civic Health Score</h2><p>Community response is trending upward.</p></div>
+          <div className="score-trend"><TrendingUp size={15} /> +8.4%</div>
+        </div>
+        <div className="mini-insight panel"><div className="insight-icon"><Zap size={17} /></div><div><span className="panel-kicker">AI INSIGHT</span><strong>Most reports are coming from road infrastructure.</strong><p>Pothole activity is 18% higher this week.</p></div></div>
+      </section>
+
+      <section className="stats-grid">
+        <StatCard icon="AlertTriangle" label="Live issues" value={active + 23} detail="Across 4 departments" />
+        <StatCard icon="CheckCircle2" label="Resolved issues" value={resolved + 764} detail="↑ 14% this month" tone="green" />
+        <StatCard icon="Users" label="Active citizens" value={citizens} detail="Reporting this week" tone="cyan" />
+        <StatCard icon="ShieldCheck" label="Priority issues" value={highPriority + 6} detail="Need faster action" tone="violet" />
+      </section>
+
+      <section className="dashboard-grid">
+        <div className="panel map-panel">
+          <div className="panel-head"><div><span className="panel-kicker">LIVE INTELLIGENCE</span><h2>Civic activity map</h2></div><Link to="/map">Open full map <ArrowRight size={15} /></Link></div>
+          <div className="dashboard-map"><MapView reports={reports} /></div>
+        </div>
+        <div className="panel recent-panel">
+          <div className="panel-head"><div><span className="panel-kicker">LATEST SIGNALS</span><h2>Recent issues</h2></div><Link to="/feed">View all <ArrowRight size={15} /></Link></div>
+          <div className="issue-list">{reports.slice(0, 4).map(r => <IssueCard key={r.id} report={r} compact />)}</div>
+          <Link className="quick-report" to="/scan"><Plus size={17} /> Report a new civic issue</Link>
+        </div>
+      </section>
+
+      <section className="analytics-grid">
+        <div className="panel activity-panel">
+          <div className="panel-head"><div><span className="panel-kicker">NETWORK ACTIVITY</span><h2>Reports this week</h2></div><span className="live-number">+24.6%</span></div>
+          <div className="bar-chart" aria-label="Reports activity chart">
+            {activity.map((value, index) => <div className="bar-wrap" key={index}><div className="bar" style={{ height: `${value}%` }} /><span>{['M','T','W','T','F','S','S','M','T','W','T','F'][index]}</span></div>)}
           </div>
-          <div className="public-hero-visual">
-            <div className="public-visual-glow" />
-            <div className="public-map-card">
-              <div className="public-map-card-head"><span><i /> LIVE CITY PULSE</span><strong>Today</strong></div>
-              <div className="public-mini-map"><MapView reports={reports} height="100%" /></div>
-              <div className="public-map-card-foot"><span><b>{active + 23}</b> active signals</span><span><b>{resolved + 764}</b> resolved this month</span></div>
-            </div>
-            <div className="public-float-card public-float-card-top"><Sparkles size={16} /><span><strong>AI verified reports</strong><small>Ready for department action</small></span></div>
-            <div className="public-float-card public-float-card-bottom"><Users size={16} /><span><strong>{citizens}+ active citizens</strong><small>Improving neighborhoods together</small></span></div>
-          </div>
-        </section>
+        </div>
+        <div className="panel department-panel">
+          <div className="panel-head"><div><span className="panel-kicker">SMART ROUTING</span><h2>Department load</h2></div></div>
+          <DepartmentRow name="PWD" value={42} tone="amber" />
+          <DepartmentRow name="Municipal Corporation" value={29} tone="green" />
+          <DepartmentRow name="Electricity Board" value={18} tone="violet" />
+          <DepartmentRow name="Drainage Department" value={11} tone="cyan" />
+        </div>
+      </section>
 
-        <section className="public-section public-services" id="services">
-          <div className="public-section-heading"><div><span className="public-eyebrow">WHAT CAN WE HELP WITH?</span><h2>One place for every civic need.</h2></div><p>Choose a service, share what you see, and let the right team take it forward.</p></div>
-          <div className="public-category-grid">{categories.map(({ label, detail, icon: Icon, tone }) => <Link className={`public-category-card ${tone}`} to="/scan" key={label}><span className="public-category-icon"><Icon size={22} /></span><span><strong>{label}</strong><small>{detail}</small></span><ArrowRight size={17} /></Link>)}</div>
-        </section>
-
-        <section className="public-section public-process" id="how-it-works">
-          <div className="public-process-copy"><span className="public-eyebrow">SIMPLE. TRANSPARENT. ACCOUNTABLE.</span><h2>From your phone to real civic action.</h2><p>Nagar Drishti makes reporting simple for citizens and actionable for city departments. Every report is location-tagged, verified, and routed to the team that can resolve it.</p><Link className="public-text-link" to="/feed">See community reports <ArrowRight size={15} /></Link></div>
-          <div className="public-steps"><PublicStep number="01" icon={Camera} title="Capture" detail="Take a photo and pin the exact location." /><PublicStep number="02" icon={MessageSquareText} title="Verify" detail="Review the AI suggestion before submitting." /><PublicStep number="03" icon={ShieldCheck} title="Resolve" detail="Track the department response to closure." /></div>
-        </section>
-
-        <section className="public-section public-impact" id="impact">
-          <div><span className="public-eyebrow">A CLEARER VIEW OF YOUR CITY</span><h2>Small reports create big change.</h2></div>
-          <div className="public-impact-stats"><div><strong>{citizens}+</strong><span>Citizens engaged</span></div><div><strong>{resolved + 764}</strong><span>Issues resolved</span></div><div><strong>4</strong><span>Departments connected</span></div><div><strong>30s</strong><span>Average report time</span></div></div>
-        </section>
-      </main>
-
-      <footer className="public-footer"><span>© 2026 Nagar Drishti</span><span>Built for cleaner, safer, more responsive cities.</span><Link to="/scan">Start a report <ArrowRight size={14} /></Link></footer>
+      <section className="how-strip">
+        <div><Clock3 size={18} /><span><strong>30 sec</strong> average report</span></div>
+        <div><ShieldCheck size={18} /><span><strong>AI verified</strong> before submission</span></div>
+        <div><MapPinned size={18} /><span><strong>GPS tagged</strong> for action</span></div>
+      </section>
     </div>
   )
 }
 
-function PublicStep({ number, icon: Icon, title, detail }) {
-  return <div className="public-step"><span className="public-step-number">{number}</span><span className="public-step-icon"><Icon size={19} /></span><span><strong>{title}</strong><small>{detail}</small></span></div>
+function DepartmentRow({ name, value, tone }) {
+  return <div className="department-row"><div><span>{name}</span><b>{value}%</b></div><div className={`load-track ${tone}`}><i style={{ width: `${value}%` }} /></div></div>
 }
