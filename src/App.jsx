@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
@@ -20,6 +20,7 @@ import {
 } from './services/localStore'
 
 export default function App() {
+  const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [reports, setReports] = useState(getReports)
   const [user, setUser] = useState(getUser)
@@ -47,6 +48,10 @@ export default function App() {
     setUser(nextUser)
     saveReports(nextReports)
     saveUser(nextUser)
+  }
+
+  if (location.pathname === '/') {
+    return <Routes><Route path="/" element={<Dashboard reports={reports} user={user} />} /></Routes>
   }
 
   return (
@@ -94,6 +99,7 @@ export default function App() {
               <ProfilePage
                 user={{
                   ...user,
+                  
                   reports: reportCount || user.reports,
                 }}
               />
