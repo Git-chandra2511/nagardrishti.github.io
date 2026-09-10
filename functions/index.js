@@ -38,7 +38,7 @@ exports.analyzeCivicImage = onCall(async (request) => {
 
   const ai = new GoogleGenAI({apiKey});
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-3.6-flash",
     contents: [{
       role: "user",
       parts: [
@@ -78,6 +78,6 @@ exports.analyzeCivicImage = onCall(async (request) => {
     priority: parsed.priority,
     severity,
     summary: typeof parsed.summary === "string" ? parsed.summary.slice(0, 500) : "",
-    model: "gemini-2.5-flash",
+    model: "gemini-3.6-flash",
   };
 });

@@ -35,7 +35,7 @@ app.post('/api/analyze', async (request, response) => {
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
     const result = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      model: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
       contents: [{
         role: 'user',
         parts: [
@@ -60,7 +60,7 @@ app.post('/api/analyze', async (request, response) => {
         priority: parsed.priority,
         severity,
         summary: typeof parsed.summary === 'string' ? parsed.summary.slice(0, 500) : '',
-        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+        model: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
       },
     })
   } catch (error) {
