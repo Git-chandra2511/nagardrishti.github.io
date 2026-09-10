@@ -40,7 +40,7 @@ export async function analyzeCivicImage(file) {
   const imageBase64 = await fileToBase64(optimizedFile)
   const apiHost = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || ''
   const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), 30000)
+  const timeout = window.setTimeout(() => controller.abort(), 90000)
   try {
     const localResponse = await fetch(`${apiHost}/api/analyze`, {
       method: 'POST',
@@ -48,18 +48,33 @@ export async function analyzeCivicImage(file) {
       body: JSON.stringify({ imageBase64, mimeType: 'image/jpeg' }),
       signal: controller.signal,
     })
-    const payload = await localResponse.json()
+    const responseText = await localResponse.text()
+    let payload = {}
+    if (responseText.trim()) {
+      try {
+        payload = JSON.parse(responseText)
+      } catch {
+        throw new Error(`AI server returned an invalid response (${localResponse.status}).`)
+      }
+    }
     if (localResponse.ok && payload.success && payload.data) return payload.data
     if (payload.error?.message) throw new Error(payload.error.message)
+    if (!localResponse.ok) {
+      throw new Error(`AI server request failed (${localResponse.status}). Start it with: npm run server`)
+    }
+    throw new Error('AI server returned an empty response. Start it with: npm run server')
   } catch (error) {
-    if (error.name === 'AbortError') throw new Error('Image analysis timed out. Try a smaller or clearer photo.')
-    if (error.message !== 'Failed to fetch') throw error
+    if (error.name === 'AbortError') throw new Error('Image analysis timed out after 90 seconds. Try a smaller or clearer photo.')
+    if (error.message === 'Failed to fetch') {
+      throw new Error('AI server is not running. Start it with: npm start --prefix server')
+    }
+    throw error
   } finally {
     window.clearTimeout(timeout)
   }
 
   if (!firebaseEnabled || !functions) {
-    throw new Error('The local Node server is unavailable. Start it with: npm run dev --prefix server')
+    throw new Error('The local Node server is unavailable. Start it with: npm start --prefix server')
   }
   const analyze = httpsCallable(functions, 'analyzeCivicImage')
   const result = await analyze({ imageBase64, mimeType: file.type || 'image/jpeg' })

@@ -19,6 +19,8 @@ import AboutPage from './pages/AboutPage'
 import AdminPage from './pages/AdminPage'
 import LoginPage from './pages/LoginPage'
 import MisconductReportPage from './pages/MisconductReportPage'
+import SwachhBharatPage from './pages/SwachhBharatPage'
+import CrossReportingPage from './pages/CrossReportingPage'
 
 import {
   getReports,
@@ -135,6 +137,8 @@ export default function App() {
             element={<ScanPage onSubmit={addReport} />}
           />
           <Route path="/misconduct-report" element={<MisconductReportPage onSubmit={addReport} />} />
+          <Route path="/swachh-bharat" element={<SwachhBharatPage reports={reports} />} />
+          <Route path="/cross-reporting" element={<CrossReportingPage />} />
 
           <Route
             path="/map"

@@ -9,6 +9,12 @@ const DEMO_ADMIN = {
   name: 'Area Administrator',
 }
 
+function createCaptcha() {
+  const first = Math.floor(Math.random() * 8) + 2
+  const second = Math.floor(Math.random() * 8) + 1
+  return { question: `${first} + ${second}`, answer: String(first + second) }
+}
+
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate()
   const { isHindi, toggleLanguage } = useLanguage()
@@ -16,6 +22,9 @@ export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [captcha, setCaptcha] = useState(createCaptcha)
+  const [captchaInput, setCaptchaInput] = useState('')
+  const [website, setWebsite] = useState('')
 
   function submit(event) {
     event.preventDefault()
@@ -23,6 +32,15 @@ export default function LoginPage({ onLogin }) {
 
     if (!email.trim() || !password) {
       setError('Enter your email and password to continue.')
+      return
+    }
+
+    if (website) return
+
+    if (captchaInput.trim() !== captcha.answer) {
+      setCaptcha(createCaptcha())
+      setCaptchaInput('')
+      setError('Complete the CAPTCHA correctly before continuing.')
       return
     }
 
@@ -68,6 +86,12 @@ export default function LoginPage({ onLogin }) {
           <form className="login-form" onSubmit={submit}>
             <label><span>Email address</span><div className="login-input"><Mail size={16} /><input type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder={role === 'admin' ? 'admin@nagar.local' : 'you@example.com'} /></div></label>
             <label><span>Password</span><div className="login-input"><LockKeyhole size={16} /><input type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="Enter your password" /></div></label>
+            <div className="captcha-box">
+              <div><span className="captcha-label">SECURITY CHECK</span><strong>{captcha.question} = ?</strong></div>
+              <input aria-label="CAPTCHA answer" inputMode="numeric" value={captchaInput} onChange={event => setCaptchaInput(event.target.value.replace(/\D/g, '').slice(0, 2))} placeholder="Answer" />
+              <button type="button" onClick={() => { setCaptcha(createCaptcha()); setCaptchaInput(''); setError('') }}>New code</button>
+            </div>
+            <label className="captcha-honeypot" aria-hidden="true"><span>Website</span><input tabIndex="-1" autoComplete="off" value={website} onChange={event => setWebsite(event.target.value)} /></label>
             {error && <p className="login-error" role="alert">{error}</p>}
             <button className="login-submit" type="submit">Continue to {role === 'admin' ? 'admin' : 'citizen'} workspace <ArrowRight size={16} /></button>
           </form>

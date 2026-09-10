@@ -3,7 +3,7 @@ import { ArrowRight, Camera, Clock3, MapPinned, Plus, ShieldCheck, TrendingUp, U
 import StatCard from '../components/StatCard'
 import IssueCard from '../components/IssueCard'
 import MapView from '../components/MapView'
-import { TargoVideo } from '../components/TargoAnimation'
+import VexHero from '../components/VexHero'
 import CityModel from '../components/CityModel'
 
 export default function Dashboard({ reports }) {
@@ -46,21 +46,7 @@ export default function Dashboard({ reports }) {
 
   return (
     <>
-      <section className="dashboard-video-page" aria-label="Nagar Drishti civic network animation">
-        <TargoVideo
-          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260823_050407_500d0339-ab28-41c1-9688-132a74a3b5aa.mp4"
-          className="dashboard-full-video"
-        />
-        <div className="dashboard-video-copy">
-          <span className="dashboard-video-kicker"><i /> NAGAR DRISHTI CIVIC NETWORK</span>
-          <h1>Make your area <em>visible.</em></h1>
-          <p>Spot a civic issue, report it in seconds, and help your community build a cleaner, safer area.</p>
-          <div className="dashboard-video-actions">
-            <Link className="primary-btn" to="/scan"><Camera size={17} /> Report an issue <ArrowRight size={16} /></Link>
-            <Link className="secondary-btn" to="/map"><MapPinned size={16} /> Explore the map</Link>
-          </div>
-        </div>
-      </section>
+      <VexHero />
       <div className="page dashboard-page">
         <section className="hero dashboard-hero">
           <div className="hero-copy">
@@ -71,6 +57,9 @@ export default function Dashboard({ reports }) {
               <Link className="primary-btn" to="/scan"><Camera size={18} /> Report an issue <ArrowRight size={17} /></Link>
               <Link className="secondary-btn" to="/map"><MapPinned size={17} /> Explore map</Link>
             </div>
+          </div>
+          <div className="dashboard-hero-image">
+            <img src="/smartcity-civic-illustration.jpeg" alt="Smart city services connected to citizens" />
           </div>
         </section>
 

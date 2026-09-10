@@ -6,7 +6,6 @@ import { GoogleGenAI } from '@google/genai'
 const app = express()
 const port = Number(process.env.PORT || 5000)
 const allowedCategories = ['Pothole', 'Garbage', 'Streetlight', 'Waterlogging']
-const allowedPriorities = ['Low', 'Medium', 'High']
 
 function normalizeCategory(value) {
   const category = String(value || '').toLowerCase()
@@ -15,6 +14,22 @@ function normalizeCategory(value) {
   if (category.includes('garbage') || category.includes('dustbin') || category.includes('trash') || category.includes('waste') || category.includes('litter')) return 'Garbage'
   if (category.includes('pothole') || category.includes('road') || category.includes('crack')) return 'Pothole'
   return null
+}
+
+function parseModelJson(text) {
+  const raw = String(text || '').trim()
+  const withoutFence = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
+  const start = withoutFence.indexOf('{')
+  const end = withoutFence.lastIndexOf('}')
+  if (start < 0 || end <= start) throw new Error('Model did not return a JSON object')
+  return JSON.parse(withoutFence.slice(start, end + 1))
+}
+
+function normalizePriority(value) {
+  const priority = String(value || '').trim().toLowerCase()
+  if (priority === 'high') return 'High'
+  if (priority === 'medium' || priority === 'moderate') return 'Medium'
+  return 'Low'
 }
 
 const allowedOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
@@ -89,11 +104,13 @@ app.post('/api/analyze', async (request, response) => {
         ],
       }],
     })
-    const parsed = JSON.parse(result.text.trim().replace(/^```json\s*|\s*```$/g, ''))
-    const confidence = Number(parsed.confidence)
+    const parsed = parseModelJson(result.text)
+    const rawConfidence = Number(parsed.confidence)
+    const confidence = rawConfidence > 1 ? rawConfidence / 100 : rawConfidence
     const severity = Number(parsed.severity)
     const category = normalizeCategory(parsed.category)
-    if (!category || !allowedPriorities.includes(parsed.priority) ||
+    const priority = normalizePriority(parsed.priority)
+    if (!category ||
         !Number.isFinite(confidence) || confidence < 0 || confidence > 1 ||
         !Number.isInteger(severity) || severity < 1 || severity > 10) {
       throw new Error('Invalid model response')
@@ -103,7 +120,7 @@ app.post('/api/analyze', async (request, response) => {
       data: {
         category,
         confidence: Math.round(confidence * 100),
-        priority: parsed.priority,
+        priority,
         severity,
         summary: typeof parsed.summary === 'string' ? parsed.summary.slice(0, 500) : '',
         model: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
@@ -111,6 +128,16 @@ app.post('/api/analyze', async (request, response) => {
     })
   } catch (error) {
     console.error('Image analysis failed:', error.message)
+    const errorText = String(error?.message || '')
+    if (errorText.includes('"code":429') || errorText.includes('RESOURCE_EXHAUSTED') || errorText.includes('quota')) {
+      return response.status(429).json({
+        success: false,
+        error: {
+          code: 'AI_QUOTA_EXCEEDED',
+          message: 'AI image-analysis quota is temporarily exceeded. Try again later or choose the category manually.',
+        },
+      })
+    }
     return response.status(502).json({ success: false, error: { code: 'ANALYSIS_FAILED', message: 'The image could not be analyzed.' } })
   }
 })

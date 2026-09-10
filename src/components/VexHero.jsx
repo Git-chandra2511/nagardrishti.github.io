@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-const VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4'
+const VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4?v=nagar-drishti-hero-2'
 const HEADING_LINES = ['Make your city', 'visible, together.']
 const CHAR_DELAY = 30
 
@@ -67,7 +67,7 @@ export default function VexHero() {
         <source src={VIDEO_URL} type="video/mp4" />
       </video>
 
-      <nav className="vex-nav">
+      <nav className="vex-nav liquid-glass">
         <Link className="vex-logo" to="/">NAGAR DRISHTI</Link>
         <div className="vex-links">
           <a href="#vex-story">How it works</a>

@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { Camera, Check, Crosshair, ImagePlus, LoaderCircle, MapPin, RotateCcw, Sparkles, Upload, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Camera, Check, Crosshair, ImagePlus, Languages, LoaderCircle, MapPin, Mic, RotateCcw, Sparkles, Square, Upload, Volume2, X } from 'lucide-react'
 import { DEPARTMENT_MAP, priorityFrom } from '../utils/civic'
 import { analyzeCivicImage } from '../services/visionService'
 
@@ -14,22 +14,74 @@ export default function ScanPage({ onSubmit }) {
   const [wrong, setWrong] = useState(false)
   const [location, setLocation] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [analysisError, setAnalysisError] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [manualCategory, setManualCategory] = useState('Pothole')
+  const [voiceLanguage, setVoiceLanguage] = useState('hi-IN')
+  const [voiceText, setVoiceText] = useState('')
+  const [voiceListening, setVoiceListening] = useState(false)
+  const [voiceError, setVoiceError] = useState('')
+  const recognitionRef = useRef(null)
+
+  useEffect(() => () => {
+    recognitionRef.current?.stop()
+  }, [])
 
   function chooseFile(next) {
     if (!next) return
     setFile(next)
     setPreview(URL.createObjectURL(next))
     setResult(null)
+    setAnalysisError('')
     setVerified(false)
     setWrong(false)
     setSubmitted(false)
   }
 
+  function toggleVoice() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setVoiceError('Voice input is not supported in this browser. Try the latest Chrome or Edge.')
+      return
+    }
+    if (voiceListening) {
+      recognitionRef.current?.stop()
+      setVoiceListening(false)
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = voiceLanguage
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.onstart = () => {
+      setVoiceError('')
+      setVoiceListening(true)
+    }
+    recognition.onresult = event => {
+      let finalText = ''
+      let interimText = ''
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const text = event.results[index][0].transcript
+        if (event.results[index].isFinal) finalText += text
+        else interimText += text
+      }
+      if (finalText) setVoiceText(current => `${current} ${finalText}`.trim())
+      if (interimText) setVoiceError(`Listening: ${interimText}`)
+    }
+    recognition.onerror = event => {
+      setVoiceListening(false)
+      setVoiceError(event.error === 'not-allowed' ? 'Microphone permission was denied.' : 'Voice input stopped. Please try again.')
+    }
+    recognition.onend = () => setVoiceListening(false)
+    recognitionRef.current = recognition
+    recognition.start()
+  }
+
   async function runAI() {
     if (!file) return
     setLoading(true)
+    setAnalysisError('')
     try {
       const prediction = await analyzeCivicImage(file)
       setResult(prediction)
@@ -37,7 +89,7 @@ export default function ScanPage({ onSubmit }) {
     } catch (error) {
       setResult(null)
       setWrong(false)
-      window.alert(error.message || 'Unable to analyze this image. You can choose a category manually.')
+      setAnalysisError(error.message || 'Unable to analyze this image. You can choose a category manually.')
     } finally {
       setLoading(false)
     }
@@ -67,6 +119,7 @@ export default function ScanPage({ onSubmit }) {
       address: 'Current GPS location',
       status: 'Pending',
       verified: true,
+      description: voiceText.trim() || 'Reported through Nagar Drishti civic scan.',
       points: 10,
       createdAt: Date.now(),
       reporter: 'You',
@@ -100,11 +153,37 @@ export default function ScanPage({ onSubmit }) {
             <p>Take a photo or upload one. Nagar Drishti detects the issue, suggests the department, and asks you to verify before submission.</p>
           </div>
 
-          <div className={`dropzone ${preview ? 'has-preview' : ''}`}>
+          <section className={`voice-report-card ${voiceListening ? 'is-listening' : ''}`}>
+            <div className="voice-report-copy">
+              <div className="voice-report-icon"><Volume2 size={19} /></div>
+              <div><span className="panel-kicker">VOICE-FIRST REPORTING</span><h2>Tell us what happened</h2><p>Speak naturally in Hindi or English. Your words become the report description.</p></div>
+            </div>
+            <div className="voice-report-controls">
+              <label><Languages size={14} /><select value={voiceLanguage} onChange={event => setVoiceLanguage(event.target.value)} disabled={voiceListening}><option value="hi-IN">हिंदी</option><option value="en-IN">English</option></select></label>
+              <button className={`voice-record-btn ${voiceListening ? 'recording' : ''}`} onClick={toggleVoice}><span>{voiceListening ? <Square size={14} /> : <Mic size={16} />}</span>{voiceListening ? 'Stop listening' : 'Speak report'}</button>
+            </div>
+            {(voiceText || voiceError) && <div className="voice-transcript" aria-live="polite">{voiceText && <p>{voiceText}</p>}{voiceError && <small>{voiceError}</small>}</div>}
+            {voiceText && <button className="voice-clear-btn" onClick={() => { setVoiceText(''); setVoiceError('') }}>Clear voice note</button>}
+          </section>
+
+          <div className={`dropzone ${preview ? 'has-preview' : ''} ${loading ? 'is-scanning' : ''} ${result ? 'is-analyzed' : ''}`}>
             {preview ? (
               <>
                 <img src={preview} alt="Selected civic issue" />
-                <button className="remove-photo" onClick={() => { setFile(null); setPreview(''); setResult(null) }}><X size={17} /></button>
+                {loading && (
+                  <div className="scan-animation" aria-live="polite">
+                    <div className="scan-target"><span /><span /><span /><span /></div>
+                    <div className="scan-line" />
+                    <strong>SCANNING IMAGE</strong>
+                  </div>
+                )}
+                {result && (
+                  <div className="scan-success" aria-label="Image analyzed successfully">
+                    <Check size={18} />
+                    <span>SCAN COMPLETE</span>
+                  </div>
+                )}
+                <button className="remove-photo" onClick={() => { setFile(null); setPreview(''); setResult(null); setAnalysisError('') }}><X size={17} /></button>
                 <div className="preview-overlay">
                   <button className="secondary-btn" onClick={() => inputRef.current?.click()}><Upload size={16} /> Replace</button>
                   {!result && <button className="primary-btn" onClick={runAI}><Sparkles size={16} /> Analyze with AI</button>}
@@ -132,6 +211,13 @@ export default function ScanPage({ onSubmit }) {
             <div className="analysis-loading"><LoaderCircle className="spin" size={23} /><div><strong>AI is examining the image…</strong><span>Checking visual patterns and civic category</span></div></div>
           )}
 
+          {analysisError && !loading && (
+            <div className="analysis-error" role="alert">
+              <div><strong>AI analysis could not start</strong><span>{analysisError}</span></div>
+              <button className="secondary-btn" onClick={runAI}>Try again</button>
+            </div>
+          )}
+
           {result && !loading && (
             <div className="ai-result">
               <div className="result-top">
@@ -139,6 +225,11 @@ export default function ScanPage({ onSubmit }) {
                 <div className="confidence"><strong>{result.confidence}%</strong><span>confidence</span></div>
               </div>
               <div className="confidence-bar"><i style={{ width: `${result.confidence}%` }} /></div>
+              <div className="analysis-output">
+                <div><span>Priority</span><strong>{result.priority}</strong></div>
+                <div><span>Severity</span><strong>{result.severity}/10</strong></div>
+                {result.summary && <p>{result.summary}</p>}
+              </div>
               <div className="verify-question"><strong>Does this look correct?</strong><span>Verify with AI before Nagar Drishti submits it.</span></div>
               <div className="verify-actions">
                 <button className={verified ? 'verify-btn selected' : 'verify-btn'} onClick={() => { setVerified(true); setWrong(false) }}><Check size={18} /> Confirm</button>

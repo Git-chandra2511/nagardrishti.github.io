@@ -24,11 +24,13 @@ export default function Sidebar({ open, onClose, user }) {
         </nav>
         <div className="nav-section-label nav-section-secondary">OPERATIONS</div>
         <nav className="nav-list">
+          <NavLink to="/swachh-bharat" onClick={onClose}><Icon name="Leaf" size={19} /><span>Swachh Bharat mission</span></NavLink>
+          <NavLink to="/cross-reporting" onClick={onClose}><Icon name="MessageCircle" size={19} /><span>WhatsApp / SMS reporting</span></NavLink>
           <NavLink to="/issues" onClick={onClose}><Icon name="ClipboardList" size={19} /><span>All issues</span></NavLink>
           <NavLink to="/my-reports" onClick={onClose}><Icon name="FileCheck2" size={19} /><span>My reports</span></NavLink>
           <NavLink to="/analytics" onClick={onClose}><Icon name="BarChart3" size={19} /><span>Analytics</span></NavLink>
           <NavLink to="/about" onClick={onClose}><Icon name="Info" size={19} /><span>About platform</span></NavLink>
-          <NavLink to="/misconduct-report" onClick={onClose}><Icon name="FileWarning" size={19} /><span>Report misconduct</span></NavLink>
+          <NavLink to="/misconduct-report" onClick={onClose}><Icon name="FileWarning" size={19} /><span>Report official misconduct</span></NavLink>
           {user?.role === 'admin' && <NavLink to="/admin" onClick={onClose}><Icon name="ShieldCheck" size={19} /><span>Admin control</span></NavLink>}
         </nav>
         <div className="sidebar-bottom">

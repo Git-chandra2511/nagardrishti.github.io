@@ -12,6 +12,13 @@ npm run dev
 
 The app works immediately in local demo mode using localStorage.
 
+To enable AI image analysis and Drishti AI chat, configure `server/.env` and run
+the API in a second terminal from the project root:
+
+```bash
+npm run server
+```
+
 ## Firebase
 Copy `.env.example` to `.env` and add the Firebase Web App configuration when ready.
 The UI remains usable without Firebase configuration, so you can demo first and connect Firebase afterward.
