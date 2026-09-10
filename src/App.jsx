@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
@@ -16,20 +16,49 @@ import IssueDetailsPage from './pages/IssueDetailsPage'
 import IssuesPage from './pages/IssuesPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import AboutPage from './pages/AboutPage'
+import LoginPage from './pages/LoginPage'
 
 import {
   getReports,
   getUser,
   saveReports,
   saveUser,
+  clearAuthSession,
+  getAuthSession,
+  saveAuthSession,
 } from './services/localStore'
 import { findPossibleDuplicates, normalizeIssue } from './services/issueService'
 import { fetchRemoteReports, saveRemoteReport } from './services/firestoreStore'
 
 export default function App() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [reports, setReports] = useState(getReports)
   const [user, setUser] = useState(getUser)
+  const [session, setSession] = useState(getAuthSession)
+
+  function handleLogin(nextSession) {
+    const nextUser = { ...user, name: nextSession.name, email: nextSession.email, role: nextSession.role }
+    setSession(nextSession)
+    setUser(nextUser)
+    saveAuthSession(nextSession)
+    saveUser(nextUser)
+  }
+
+  function handleLogout() {
+    clearAuthSession()
+    setSession(null)
+    navigate('/login', { replace: true })
+  }
+
+  if (!session && location.pathname !== '/login') {
+    return <Navigate to="/login" replace />
+  }
+
+  if (location.pathname === '/login') {
+    return session ? <Navigate to={session.role === 'admin' ? '/admin' : '/'} replace /> : <LoginPage onLogin={handleLogin} />
+  }
 
   useEffect(() => {
     let active = true
@@ -89,6 +118,7 @@ export default function App() {
         <Topbar
           onMenu={() => setSidebarOpen(true)}
           user={user}
+          onLogout={handleLogout}
         />
 
         <Routes>
@@ -134,7 +164,7 @@ export default function App() {
           <Route path="/analytics" element={<AnalyticsPage reports={reports} />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/officer/*" element={<AnalyticsPage reports={reports} officerMode />} />
-          <Route path="/admin/*" element={<AnalyticsPage reports={reports} adminMode />} />
+          <Route path="/admin/*" element={session.role === 'admin' ? <AnalyticsPage reports={reports} adminMode /> : <Navigate to="/" replace />} />
 
           <Route
             path="*"

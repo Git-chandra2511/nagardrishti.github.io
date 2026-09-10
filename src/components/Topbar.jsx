@@ -14,7 +14,7 @@ const titles = {
   '/about': ['About Nagar Drishti', 'Report, understand, act'],
 }
 
-export default function Topbar({ onMenu, user }) {
+export default function Topbar({ onMenu, user, onLogout }) {
   const location = useLocation()
   const [title, subtitle] = titles[location.pathname] || titles['/']
   return (
@@ -35,7 +35,7 @@ export default function Topbar({ onMenu, user }) {
       <div className="top-actions">
         <button className="search-mini"><Search size={17} /><span>Search reports</span></button>
         <button className="icon-btn notification"><Bell size={19} /><i /></button>
-        <div className="avatar">{(user?.name || 'C').slice(0,1).toUpperCase()}</div>
+        <button className="avatar avatar-button" onClick={onLogout} title="Sign out" aria-label="Sign out">{(user?.name || 'C').slice(0,1).toUpperCase()}</button>
       </div>
     </header>
   )
