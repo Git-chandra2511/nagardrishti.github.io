@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Sidebar from './components/Sidebar'
@@ -23,11 +23,26 @@ import {
   saveUser,
 } from './services/localStore'
 import { findPossibleDuplicates, normalizeIssue } from './services/issueService'
+import { fetchRemoteReports, saveRemoteReport } from './services/firestoreStore'
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [reports, setReports] = useState(getReports)
   const [user, setUser] = useState(getUser)
+
+  useEffect(() => {
+    let active = true
+    fetchRemoteReports()
+      .then(remoteReports => {
+        if (active && remoteReports?.length) setReports(remoteReports)
+      })
+      .catch(error => {
+        console.warn('Firestore reports unavailable; continuing with local reports.', error)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const reportCount = useMemo(() => {
     return reports.filter((report) => report.reporter === 'You').length
@@ -57,6 +72,9 @@ export default function App() {
     setUser(nextUser)
     saveReports(nextReports)
     saveUser(nextUser)
+    saveRemoteReport(nextReport).catch(error => {
+      console.warn('Report saved locally, but Firestore sync failed.', error)
+    })
   }
 
   return (
