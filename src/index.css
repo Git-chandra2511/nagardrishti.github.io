@@ -652,6 +652,115 @@ body.light-theme .leaflet-control-zoom a:hover {
     }
   }
 
+  /* Admin desktop layout must stay outside the legacy responsive theme blocks. */
+  .admin-page .admin-header {
+    display: flex !important;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .admin-page .admin-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.45fr) minmax(270px, .75fr);
+    gap: 14px;
+  }
+
+  .admin-page .admin-table-wrap {
+    overflow-x: auto;
+  }
+
+  .admin-page .admin-table {
+    width: 100%;
+    min-width: 590px;
+    border-collapse: collapse;
+  }
+
+  .admin-page .admin-table th,
+  .admin-page .admin-table td {
+    padding: 14px 18px !important;
+    border-bottom: 1px solid #e5edf3 !important;
+    text-align: left;
+    color: #526d80;
+    font-size: 10px;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  .admin-page .admin-table th {
+    color: #8aa1b4;
+    font-size: 9px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .admin-page .admin-table td:first-child {
+    min-width: 210px;
+  }
+
+  .admin-page .admin-table td strong,
+  .admin-page .admin-table td small {
+    display: block;
+  }
+
+  .admin-page .admin-table td strong {
+    color: #1e293b;
+    font-size: 11px;
+  }
+
+  .admin-page .admin-table td small {
+    margin-top: 4px;
+    overflow: hidden;
+    color: #8aa1b4;
+    font-size: 9px;
+    text-overflow: ellipsis;
+  }
+
+  .admin-page .admin-department-list {
+    display: grid !important;
+    gap: 21px;
+    padding: 20px;
+  }
+
+  .admin-page .admin-department {
+    display: grid !important;
+    gap: 8px;
+  }
+
+  .admin-page .admin-department > div:first-child {
+    display: flex !important;
+    justify-content: space-between;
+    gap: 12px;
+    color: #526d80;
+    font-size: 10px;
+  }
+
+  .admin-page .admin-progress {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #e7eff4;
+  }
+
+  .admin-page .admin-progress i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #2387dd;
+  }
+
+  @media (max-width: 900px) {
+    .admin-page .admin-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .admin-page .admin-header {
+      display: block !important;
+    }
+  }
+
   .login-page {
     min-height: 100vh;
     display: grid;
