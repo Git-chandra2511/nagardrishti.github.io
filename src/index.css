@@ -368,6 +368,49 @@ body.light-theme .leaflet-control-zoom a:hover {
     color: #d7e9f8 !important;
   }
 
+  /* Keep the assistant visible on desktop as well as mobile. */
+  .drishti-ai {
+    position: fixed !important;
+    right: 24px !important;
+    bottom: 24px !important;
+    z-index: 1000 !important;
+    display: grid !important;
+    justify-items: end;
+    gap: 12px;
+  }
+
+  .drishti-ai-trigger {
+    min-height: 52px !important;
+    padding: 0 18px !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 9px;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: #2387dd !important;
+    color: #ffffff !important;
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 12px 28px rgba(35, 135, 221, .28);
+  }
+
+  .drishti-ai-trigger svg {
+    width: 22px;
+    height: 22px;
+    flex: none;
+  }
+
+  .drishti-ai-trigger:hover {
+    background: #176fb9 !important;
+  }
+
+  @media (max-width: 760px) {
+    .drishti-ai {
+      right: 16px !important;
+      bottom: 82px !important;
+    }
+  }
+
   /* Smartcity-style civic presentation: airy surfaces, blue actions, and green
      civic accents while preserving the existing dashboard structure. */
   body.light-theme {
@@ -1423,8 +1466,80 @@ body.light-theme .bottom-nav {
       transform: translateX(0);
     }
   }
+
+  /* Desktop-safe placement for the Drishti AI launcher. */
+  .drishti-ai {
+    position: fixed !important;
+    right: 24px !important;
+    bottom: 24px !important;
+    z-index: 1000 !important;
+  }
+
+  .drishti-ai-trigger {
+    min-height: 52px !important;
+    padding: 0 18px !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 9px;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: #2387dd !important;
+    color: #ffffff !important;
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 12px 28px rgba(35, 135, 221, .28);
+  }
+
+  .drishti-ai-trigger svg {
+    width: 22px;
+    height: 22px;
+    flex: none;
+  }
+
+  @media (max-width: 760px) {
+    .drishti-ai {
+      right: 16px !important;
+      bottom: 82px !important;
+    }
+  }
   .vex-tag {
     align-self: flex-start;
     margin-top: 32px;
+  }
+}
+
+/* Ensure the launcher is positioned correctly on desktop layouts. */
+.drishti-ai {
+  position: fixed !important;
+  right: 24px !important;
+  bottom: 24px !important;
+  z-index: 1000 !important;
+}
+
+.drishti-ai-trigger {
+  min-height: 52px !important;
+  padding: 0 18px !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 9px;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #2387dd !important;
+  color: #ffffff !important;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 12px 28px rgba(35, 135, 221, .28);
+}
+
+.drishti-ai-trigger svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+
+@media (max-width: 760px) {
+  .drishti-ai {
+    right: 16px !important;
+    bottom: 82px !important;
   }
 }
