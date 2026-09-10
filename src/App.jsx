@@ -18,6 +18,7 @@ import AnalyticsPage from './pages/AnalyticsPage'
 import AboutPage from './pages/AboutPage'
 import AdminPage from './pages/AdminPage'
 import LoginPage from './pages/LoginPage'
+import MisconductReportPage from './pages/MisconductReportPage'
 
 import {
   getReports,
@@ -133,6 +134,7 @@ export default function App() {
             path="/scan"
             element={<ScanPage onSubmit={addReport} />}
           />
+          <Route path="/misconduct-report" element={<MisconductReportPage onSubmit={addReport} />} />
 
           <Route
             path="/map"

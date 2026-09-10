@@ -28,6 +28,7 @@ export default function Sidebar({ open, onClose, user }) {
           <NavLink to="/my-reports" onClick={onClose}><Icon name="FileCheck2" size={19} /><span>My reports</span></NavLink>
           <NavLink to="/analytics" onClick={onClose}><Icon name="BarChart3" size={19} /><span>Analytics</span></NavLink>
           <NavLink to="/about" onClick={onClose}><Icon name="Info" size={19} /><span>About platform</span></NavLink>
+          <NavLink to="/misconduct-report" onClick={onClose}><Icon name="FileWarning" size={19} /><span>Report misconduct</span></NavLink>
           {user?.role === 'admin' && <NavLink to="/admin" onClick={onClose}><Icon name="ShieldCheck" size={19} /><span>Admin control</span></NavLink>}
         </nav>
         <div className="sidebar-bottom">
