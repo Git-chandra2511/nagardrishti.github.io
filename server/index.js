@@ -8,6 +8,15 @@ const port = Number(process.env.PORT || 5000)
 const allowedCategories = ['Pothole', 'Garbage', 'Streetlight', 'Waterlogging']
 const allowedPriorities = ['Low', 'Medium', 'High']
 
+function normalizeCategory(value) {
+  const category = String(value || '').toLowerCase()
+  if (category.includes('water') || category.includes('flood') || category.includes('drain')) return 'Waterlogging'
+  if (category.includes('streetlight') || category.includes('street light') || category.includes('lamp') || category.includes('electric')) return 'Streetlight'
+  if (category.includes('garbage') || category.includes('dustbin') || category.includes('trash') || category.includes('waste') || category.includes('litter')) return 'Garbage'
+  if (category.includes('pothole') || category.includes('road') || category.includes('crack')) return 'Pothole'
+  return null
+}
+
 const allowedOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
 app.use(cors({
   origin: (origin, callback) => {
@@ -47,7 +56,8 @@ app.post('/api/analyze', async (request, response) => {
     const parsed = JSON.parse(result.text.trim().replace(/^```json\s*|\s*```$/g, ''))
     const confidence = Number(parsed.confidence)
     const severity = Number(parsed.severity)
-    if (!allowedCategories.includes(parsed.category) || !allowedPriorities.includes(parsed.priority) ||
+    const category = normalizeCategory(parsed.category)
+    if (!category || !allowedPriorities.includes(parsed.priority) ||
         !Number.isFinite(confidence) || confidence < 0 || confidence > 1 ||
         !Number.isInteger(severity) || severity < 1 || severity > 10) {
       throw new Error('Invalid model response')
@@ -55,7 +65,7 @@ app.post('/api/analyze', async (request, response) => {
     return response.json({
       success: true,
       data: {
-        category: parsed.category,
+        category,
         confidence: Math.round(confidence * 100),
         priority: parsed.priority,
         severity,

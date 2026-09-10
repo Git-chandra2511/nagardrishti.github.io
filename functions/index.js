@@ -25,6 +25,14 @@ setGlobalOptions({ maxInstances: 10 });
 
 const allowedCategories = ["Pothole", "Garbage", "Streetlight", "Waterlogging"];
 const allowedPriorities = ["Low", "Medium", "High"];
+function normalizeCategory(value) {
+  const category = String(value || "").toLowerCase();
+  if (category.includes("water") || category.includes("flood") || category.includes("drain")) return "Waterlogging";
+  if (category.includes("streetlight") || category.includes("street light") || category.includes("lamp") || category.includes("electric")) return "Streetlight";
+  if (category.includes("garbage") || category.includes("dustbin") || category.includes("trash") || category.includes("waste") || category.includes("litter")) return "Garbage";
+  if (category.includes("pothole") || category.includes("road") || category.includes("crack")) return "Pothole";
+  return null;
+}
 
 exports.analyzeCivicImage = onCall(async (request) => {
   if (!request.data || typeof request.data.imageBase64 !== "string" || !request.data.mimeType) {
@@ -60,7 +68,8 @@ exports.analyzeCivicImage = onCall(async (request) => {
     throw new HttpsError("internal", "The vision service returned an invalid response.");
   }
 
-  if (!allowedCategories.includes(parsed.category)) {
+  const category = normalizeCategory(parsed.category);
+  if (!category) {
     throw new HttpsError("internal", "The vision service returned an unsupported category.");
   }
 
@@ -73,7 +82,7 @@ exports.analyzeCivicImage = onCall(async (request) => {
   }
 
   return {
-    category: parsed.category,
+    category,
     confidence: Math.round(confidence * 100),
     priority: parsed.priority,
     severity,
