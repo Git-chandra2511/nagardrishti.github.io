@@ -5,15 +5,43 @@ import IssueCard from '../components/IssueCard'
 import MapView from '../components/MapView'
 import { TargoVideo } from '../components/TargoAnimation'
 
-const activity = [42, 58, 51, 68, 61, 76, 84, 72, 91, 87, 96, 82]
-
 export default function Dashboard({ reports }) {
   const verified = reports.filter(r => r.verified).length
   const active = reports.filter(r => ['Pending', 'In Progress'].includes(r.status)).length
   const resolved = reports.filter(r => r.status === 'Resolved').length
   const highPriority = reports.filter(r => r.priority === 'High').length
-  const score = Math.min(98, 82 + verified + resolved)
-  const citizens = new Set(reports.map(r => r.reporter).filter(Boolean)).size + 127
+  const score = reports.length
+    ? Math.round((verified / reports.length) * 70 + (resolved / reports.length) * 30)
+    : 0
+  const citizens = new Set(reports.map(r => r.reporter).filter(Boolean)).size
+  const departmentCounts = reports.reduce((counts, report) => {
+    counts[report.department] = (counts[report.department] || 0) + 1
+    return counts
+  }, {})
+  const maxDepartmentCount = Math.max(1, ...Object.values(departmentCounts))
+  const activityCounts = Array.from({ length: 7 }, (_, index) => {
+    const dayStart = new Date()
+    dayStart.setHours(0, 0, 0, 0)
+    dayStart.setDate(dayStart.getDate() - (6 - index))
+    const dayEnd = new Date(dayStart)
+    dayEnd.setDate(dayEnd.getDate() + 1)
+    return reports.filter(report => {
+      const createdAt = new Date(report.createdAt)
+      return createdAt >= dayStart && createdAt < dayEnd
+    }).length
+  })
+  const maxActivity = Math.max(1, ...activityCounts)
+  const activity = activityCounts.map(count => count ? Math.max(12, Math.round((count / maxActivity) * 100)) : 0)
+  const activityLabels = activityCounts.map((_, index) => {
+    const day = new Date()
+    day.setDate(day.getDate() - (6 - index))
+    return day.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 1)
+  })
+  const topCategory = reports.reduce((counts, report) => {
+    counts[report.category] = (counts[report.category] || 0) + 1
+    return counts
+  }, {})
+  const leadingCategory = Object.entries(topCategory).sort((a, b) => b[1] - a[1])[0]
 
   return (
     <>
@@ -46,15 +74,15 @@ export default function Dashboard({ reports }) {
         </section>
 
         <section className="civic-score-row">
-          <div className="civic-score-card panel"><div className="score-ring"><strong>{score}</strong><span>/100</span></div><div><span className="panel-kicker">AREA PULSE</span><h2>Civic Health Score</h2><p>Community response is trending upward.</p></div><div className="score-trend"><TrendingUp size={15} /> +8.4%</div></div>
-          <div className="mini-insight panel"><div className="insight-icon"><Zap size={17} /></div><div><span className="panel-kicker">AI INSIGHT</span><strong>Most reports are coming from road infrastructure.</strong><p>Pothole activity is 18% higher this week.</p></div></div>
+          <div className="civic-score-card panel"><div className="score-ring"><strong>{score}</strong><span>/100</span></div><div><span className="panel-kicker">AREA PULSE</span><h2>Civic Health Score</h2><p>Calculated from verified and resolved reports.</p></div><div className="score-trend"><TrendingUp size={15} /> LIVE</div></div>
+          <div className="mini-insight panel"><div className="insight-icon"><Zap size={17} /></div><div><span className="panel-kicker">AI INSIGHT</span><strong>{leadingCategory ? `Most reports are ${leadingCategory[0].toLowerCase()}.` : 'Your live report insights will appear here.'}</strong><p>{leadingCategory ? `${leadingCategory[1]} report${leadingCategory[1] === 1 ? '' : 's'} currently recorded.` : 'Submit a civic issue to start building area intelligence.'}</p></div></div>
         </section>
 
         <section className="stats-grid">
-          <StatCard icon="AlertTriangle" label="Live issues" value={active + 23} detail="Across 4 departments" />
-          <StatCard icon="CheckCircle2" label="Resolved issues" value={resolved + 764} detail="↑ 14% this month" tone="green" />
+          <StatCard icon="AlertTriangle" label="Live issues" value={active} detail="From submitted reports" />
+          <StatCard icon="CheckCircle2" label="Resolved issues" value={resolved} detail="From submitted reports" tone="green" />
           <StatCard icon="Users" label="Active citizens" value={citizens} detail="Reporting this week" tone="cyan" />
-          <StatCard icon="ShieldCheck" label="Priority issues" value={highPriority + 6} detail="Need faster action" tone="violet" />
+          <StatCard icon="ShieldCheck" label="Priority issues" value={highPriority} detail="Need faster action" tone="violet" />
         </section>
 
         <section className="dashboard-grid">
@@ -63,8 +91,8 @@ export default function Dashboard({ reports }) {
         </section>
 
         <section className="analytics-grid">
-          <div className="panel activity-panel"><div className="panel-head"><div><span className="panel-kicker">NETWORK ACTIVITY</span><h2>Reports this week</h2></div><span className="live-number">+24.6%</span></div><div className="bar-chart" aria-label="Reports activity chart">{activity.map((value, index) => <div className="bar-wrap" key={index}><div className="bar" style={{ height: `${value}%` }} /><span>{['M','T','W','T','F','S','S','M','T','W','T','F'][index]}</span></div>)}</div></div>
-          <div className="panel department-panel"><div className="panel-head"><div><span className="panel-kicker">SMART ROUTING</span><h2>Department load</h2></div></div><DepartmentRow name="PWD" value={42} tone="amber" /><DepartmentRow name="Municipal Corporation" value={29} tone="green" /><DepartmentRow name="Electricity Board" value={18} tone="violet" /><DepartmentRow name="Drainage Department" value={11} tone="cyan" /></div>
+          <div className="panel activity-panel"><div className="panel-head"><div><span className="panel-kicker">LIVE NETWORK ACTIVITY</span><h2>Reports this week</h2></div><span className="live-number">{activityCounts.reduce((sum, count) => sum + count, 0)} total</span></div><div className="bar-chart" aria-label="Reports activity chart">{activity.map((value, index) => <div className="bar-wrap" key={index}><div className="bar" style={{ height: `${value}%` }} /><span>{activityLabels[index]}</span></div>)}</div></div>
+          <div className="panel department-panel"><div className="panel-head"><div><span className="panel-kicker">SMART ROUTING</span><h2>Department load</h2></div></div><DepartmentRow name="PWD" value={Math.round(((departmentCounts.PWD || 0) / maxDepartmentCount) * 100)} tone="amber" /><DepartmentRow name="Municipal Corporation" value={Math.round(((departmentCounts['Municipal Corporation'] || 0) / maxDepartmentCount) * 100)} tone="green" /><DepartmentRow name="Electricity Board" value={Math.round(((departmentCounts['Electricity Board'] || 0) / maxDepartmentCount) * 100)} tone="violet" /><DepartmentRow name="Drainage Department" value={Math.round(((departmentCounts['Drainage Department'] || 0) / maxDepartmentCount) * 100)} tone="cyan" /></div>
         </section>
 
         <section className="how-strip"><div><Clock3 size={18} /><span><strong>30 sec</strong> average report</span></div><div><ShieldCheck size={18} /><span><strong>AI verified</strong> before submission</span></div><div><MapPinned size={18} /><span><strong>GPS tagged</strong> for action</span></div></section>
