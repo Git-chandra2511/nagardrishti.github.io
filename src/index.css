@@ -652,6 +652,43 @@ body.light-theme .leaflet-control-zoom a:hover {
     }
   }
 
+  /* Final open-state layout for the floating assistant. */
+  .drishti-ai.is-open {
+    align-items: end;
+  }
+
+  .drishti-ai.is-open .drishti-chat-panel {
+    position: relative;
+    z-index: 2;
+    margin-bottom: 0;
+  }
+
+  .drishti-ai.is-open .drishti-ai-trigger {
+    position: relative;
+    z-index: 3;
+  }
+
+  .drishti-chat-panel {
+    box-sizing: border-box !important;
+    color: #1e293b !important;
+  }
+
+  .drishti-chat-panel button,
+  .drishti-chat-panel input {
+    font-family: inherit !important;
+  }
+
+  .drishti-chat-messages {
+    min-height: 0;
+  }
+
+  @media (max-width: 520px) {
+    .drishti-chat-panel {
+      width: calc(100vw - 32px) !important;
+      height: min(520px, calc(100vh - 150px)) !important;
+    }
+  }
+
   /* Smartcity-style civic presentation: airy surfaces, blue actions, and green
      civic accents while preserving the existing dashboard structure. */
   body.light-theme {
