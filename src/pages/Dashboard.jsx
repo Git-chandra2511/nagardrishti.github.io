@@ -4,6 +4,7 @@ import StatCard from '../components/StatCard'
 import IssueCard from '../components/IssueCard'
 import MapView from '../components/MapView'
 import { TargoVideo } from '../components/TargoAnimation'
+import CityModel from '../components/CityModel'
 
 export default function Dashboard({ reports }) {
   const verified = reports.filter(r => r.verified).length
@@ -89,6 +90,8 @@ export default function Dashboard({ reports }) {
           <div className="panel map-panel"><div className="panel-head"><div><span className="panel-kicker">LIVE INTELLIGENCE</span><h2>Civic activity map</h2></div><Link to="/map">Open full map <ArrowRight size={15} /></Link></div><div className="dashboard-map"><MapView reports={reports} /></div></div>
           <div className="panel recent-panel"><div className="panel-head"><div><span className="panel-kicker">LATEST SIGNALS</span><h2>Recent issues</h2></div><Link to="/feed">View all <ArrowRight size={15} /></Link></div><div className="issue-list">{reports.slice(0, 4).map(r => <IssueCard key={r.id} report={r} compact />)}</div><Link className="quick-report" to="/scan"><Plus size={17} /> Report a new civic issue</Link></div>
         </section>
+
+        <CityModel />
 
         <section className="analytics-grid">
           <div className="panel activity-panel"><div className="panel-head"><div><span className="panel-kicker">LIVE NETWORK ACTIVITY</span><h2>Reports this week</h2></div><span className="live-number">{activityCounts.reduce((sum, count) => sum + count, 0)} total</span></div><div className="bar-chart" aria-label="Reports activity chart">{activity.map((value, index) => <div className="bar-wrap" key={index}><div className="bar" style={{ height: `${value}%` }} /><span>{activityLabels[index]}</span></div>)}</div></div>

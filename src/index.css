@@ -406,6 +406,44 @@ body.light-theme .leaflet-control-zoom a:hover {
     color: #ffffff;
   }
 
+  .city-model-panel {
+    margin-top: 14px;
+    overflow: hidden;
+  }
+
+  .city-model-panel .panel-head {
+    min-height: 78px;
+  }
+
+  .model-hint {
+    color: #6b879b;
+    font-size: 10px;
+  }
+
+  .city-model-stage {
+    height: 430px;
+    background:
+      radial-gradient(circle at 50% 40%, rgba(35, 135, 221, .12), transparent 40%),
+      linear-gradient(135deg, #eff8fc, #e5f2f8);
+  }
+
+  .city-model-stage model-viewer {
+    width: 100%;
+    height: 100%;
+    display: block;
+    --poster-color: transparent;
+  }
+
+  @media (max-width: 760px) {
+    .city-model-stage {
+      height: 320px;
+    }
+
+    .model-hint {
+      display: none;
+    }
+  }
+
   .drishti-ai-trigger:hover {
     background: #176fb9 !important;
   }
