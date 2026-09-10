@@ -4,7 +4,7 @@ import Icon from './Icon'
 import Logo from './Logo'
 import { NAV_ITEMS } from '../utils/civic'
 
-export default function Sidebar({ open, onClose }) {
+export default function Sidebar({ open, onClose, user }) {
   return (
     <>
       {open && <button className="drawer-backdrop" onClick={onClose} aria-label="Close menu" />}
@@ -28,6 +28,7 @@ export default function Sidebar({ open, onClose }) {
           <NavLink to="/my-reports" onClick={onClose}><Icon name="FileCheck2" size={19} /><span>My reports</span></NavLink>
           <NavLink to="/analytics" onClick={onClose}><Icon name="BarChart3" size={19} /><span>Analytics</span></NavLink>
           <NavLink to="/about" onClick={onClose}><Icon name="Info" size={19} /><span>About platform</span></NavLink>
+          {user?.role === 'admin' && <NavLink to="/admin" onClick={onClose}><Icon name="ShieldCheck" size={19} /><span>Admin control</span></NavLink>}
         </nav>
         <div className="sidebar-bottom">
           <div className="mission-card">

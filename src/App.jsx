@@ -16,6 +16,7 @@ import IssueDetailsPage from './pages/IssueDetailsPage'
 import IssuesPage from './pages/IssuesPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import AboutPage from './pages/AboutPage'
+import AdminPage from './pages/AdminPage'
 import LoginPage from './pages/LoginPage'
 
 import {
@@ -112,6 +113,7 @@ export default function App() {
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        user={user}
       />
 
       <main className="main-area">
@@ -164,7 +166,7 @@ export default function App() {
           <Route path="/analytics" element={<AnalyticsPage reports={reports} />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/officer/*" element={<AnalyticsPage reports={reports} officerMode />} />
-          <Route path="/admin/*" element={session.role === 'admin' ? <AnalyticsPage reports={reports} adminMode /> : <Navigate to="/" replace />} />
+          <Route path="/admin/*" element={session.role === 'admin' ? <AdminPage reports={reports} /> : <Navigate to="/" replace />} />
 
           <Route
             path="*"
