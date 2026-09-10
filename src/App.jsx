@@ -52,14 +52,6 @@ export default function App() {
     navigate('/login', { replace: true })
   }
 
-  if (!session && location.pathname !== '/login') {
-    return <Navigate to="/login" replace />
-  }
-
-  if (location.pathname === '/login') {
-    return session ? <Navigate to={session.role === 'admin' ? '/admin' : '/'} replace /> : <LoginPage onLogin={handleLogin} />
-  }
-
   useEffect(() => {
     let active = true
     fetchRemoteReports()
@@ -77,6 +69,14 @@ export default function App() {
   const reportCount = useMemo(() => {
     return reports.filter((report) => report.reporter === 'You').length
   }, [reports])
+
+  if (!session && location.pathname !== '/login') {
+    return <Navigate to="/login" replace />
+  }
+
+  if (location.pathname === '/login') {
+    return session ? <Navigate to={session.role === 'admin' ? '/admin' : '/'} replace /> : <LoginPage onLogin={handleLogin} />
+  }
 
   function addReport(report) {
     const nextReport = normalizeIssue({
