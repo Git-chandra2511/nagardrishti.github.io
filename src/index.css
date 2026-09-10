@@ -380,24 +380,30 @@ body.light-theme .leaflet-control-zoom a:hover {
   }
 
   .drishti-ai-trigger {
-    min-height: 52px !important;
-    padding: 0 18px !important;
+    min-height: 58px !important;
+    min-width: 156px;
+    padding: 0 16px !important;
     display: inline-flex !important;
     align-items: center;
     gap: 9px;
-    border: 0 !important;
-    border-radius: 999px !important;
-    background: #2387dd !important;
-    color: #ffffff !important;
+    border: 1px solid #b9d8eb !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+    color: #1e5f91 !important;
     font-size: 12px;
     font-weight: 800;
-    box-shadow: 0 12px 28px rgba(35, 135, 221, .28);
+    box-shadow: 0 12px 28px rgba(35, 135, 221, .2);
   }
 
   .drishti-ai-trigger svg {
     width: 22px;
     height: 22px;
     flex: none;
+    padding: 4px;
+    box-sizing: content-box;
+    border-radius: 8px;
+    background: #2387dd;
+    color: #ffffff;
   }
 
   .drishti-ai-trigger:hover {
@@ -408,6 +414,10 @@ body.light-theme .leaflet-control-zoom a:hover {
     .drishti-ai {
       right: 16px !important;
       bottom: 82px !important;
+    }
+
+    .drishti-ai-trigger {
+      min-width: 142px;
     }
   }
 
