@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ShieldCheck, UserRound, LockKeyhole, Mail, ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useLanguage } from '../i18n'
 
 const DEMO_ADMIN = {
   email: 'admin@nagar.local',
@@ -10,6 +11,7 @@ const DEMO_ADMIN = {
 
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate()
+  const { isHindi, toggleLanguage } = useLanguage()
   const [role, setRole] = useState('user')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -51,6 +53,7 @@ export default function LoginPage({ onLogin }) {
 
       <section className="login-card-wrap">
         <div className="login-card">
+          <button className="login-language-toggle" type="button" onClick={toggleLanguage}>{isHindi ? 'EN' : 'हिंदी'}</button>
           <div className="login-heading">
             <div className="eyebrow">WELCOME BACK</div>
             <h2>Sign in to Nagar Drishti</h2>

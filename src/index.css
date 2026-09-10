@@ -851,12 +851,31 @@ body.light-theme .leaflet-control-zoom a:hover {
   }
 
   .login-card {
+    position: relative;
     width: min(100%, 450px);
     padding: 38px;
     border: 1px solid #dbe7ef;
     border-radius: 22px;
     background: #fff;
     box-shadow: 0 24px 70px rgba(27, 65, 95, .12);
+  }
+
+  .language-toggle,
+  .login-language-toggle {
+    min-width: 42px;
+    height: 32px;
+    border: 1px solid #b9d8eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #36719b;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .login-language-toggle {
+    position: absolute;
+    top: 18px;
+    right: 18px;
   }
 
   .login-heading h2 {

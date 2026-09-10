@@ -1,5 +1,6 @@
 import { Bell, Menu, Search } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
+import { useLanguage } from '../i18n'
 
 const titles = {
   '/': ['Civic Command Center', 'Real-time view of your area'],
@@ -16,6 +17,7 @@ const titles = {
 
 export default function Topbar({ onMenu, user, onLogout }) {
   const location = useLocation()
+  const { isHindi, toggleLanguage } = useLanguage()
   const [title, subtitle] = titles[location.pathname] || titles['/']
   return (
     <header className="topbar">
@@ -33,6 +35,7 @@ export default function Topbar({ onMenu, user, onLogout }) {
         </div>
       </div>
       <div className="top-actions">
+        <button className="language-toggle" onClick={toggleLanguage} aria-label="Toggle language">{isHindi ? 'EN' : 'हिंदी'}</button>
         <button className="search-mini"><Search size={17} /><span>Search reports</span></button>
         <button className="icon-btn notification"><Bell size={19} /><i /></button>
         <button className="avatar avatar-button" onClick={onLogout} title="Sign out" aria-label="Sign out">{(user?.name || 'C').slice(0,1).toUpperCase()}</button>
