@@ -24,8 +24,8 @@ export default function Dashboard({ reports }) {
         />
         <div className="dashboard-video-copy">
           <span className="dashboard-video-kicker"><i /> NAGAR DRISHTI CIVIC NETWORK</span>
-          <h1>Make your city <em>visible.</em></h1>
-          <p>Spot a civic issue, report it in seconds, and help your community build a cleaner, safer city.</p>
+          <h1>Make your area <em>visible.</em></h1>
+          <p>Spot a civic issue, report it in seconds, and help your community build a cleaner, safer area.</p>
           <div className="dashboard-video-actions">
             <Link className="primary-btn" to="/scan"><Camera size={17} /> Report an issue <ArrowRight size={16} /></Link>
             <Link className="secondary-btn" to="/map"><MapPinned size={16} /> Explore the map</Link>
@@ -36,7 +36,7 @@ export default function Dashboard({ reports }) {
         <section className="hero dashboard-hero">
           <div className="hero-copy">
             <div className="eyebrow"><span className="live-dot" /> LIVE CIVIC NETWORK <span className="live-pill">● ONLINE</span></div>
-            <h1>Make your city <em>visible.</em></h1>
+            <h1>Make your area <em>visible.</em></h1>
             <p>Nagar Drishti turns citizens into a real-time sensing network. Scan a civic problem, verify the AI, and send it to the right department.</p>
             <div className="hero-actions">
               <Link className="primary-btn" to="/scan"><Camera size={18} /> Report an issue <ArrowRight size={17} /></Link>
@@ -46,7 +46,7 @@ export default function Dashboard({ reports }) {
         </section>
 
         <section className="civic-score-row">
-          <div className="civic-score-card panel"><div className="score-ring"><strong>{score}</strong><span>/100</span></div><div><span className="panel-kicker">CITY PULSE</span><h2>Civic Health Score</h2><p>Community response is trending upward.</p></div><div className="score-trend"><TrendingUp size={15} /> +8.4%</div></div>
+          <div className="civic-score-card panel"><div className="score-ring"><strong>{score}</strong><span>/100</span></div><div><span className="panel-kicker">AREA PULSE</span><h2>Civic Health Score</h2><p>Community response is trending upward.</p></div><div className="score-trend"><TrendingUp size={15} /> +8.4%</div></div>
           <div className="mini-insight panel"><div className="insight-icon"><Zap size={17} /></div><div><span className="panel-kicker">AI INSIGHT</span><strong>Most reports are coming from road infrastructure.</strong><p>Pothole activity is 18% higher this week.</p></div></div>
         </section>
 

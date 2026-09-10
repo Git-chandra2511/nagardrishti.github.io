@@ -2,7 +2,7 @@ import { Bell, Menu, Search } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 
 const titles = {
-  '/': ['Civic Command Center', 'Real-time view of your city'],
+  '/': ['Civic Command Center', 'Real-time view of your area'],
   '/scan': ['Scan Civic Issue', 'AI-powered issue detection'],
   '/map': ['Civic Map', 'Live issue intelligence'],
   '/feed': ['Civic Feed', 'See what citizens are reporting'],
@@ -27,8 +27,8 @@ export default function Topbar({ onMenu, user }) {
       <div className="topbar-ticker" aria-label="Live civic updates">
         <span className="topbar-ticker-live"><i /> LIVE</span>
         <div className="topbar-ticker-track">
-          <span>YOUR CITY. YOUR VOICE.</span><b>✦</b><span>SPOT IT. REPORT IT.</span><b>✦</b>
-          <span>TOGETHER, WE IMPROVE.</span><b>✦</b><span>YOUR CITY. YOUR VOICE.</span><b>✦</b>
+          <span>YOUR AREA. YOUR VOICE.</span><b>✦</b><span>SPOT IT. REPORT IT.</span><b>✦</b>
+          <span>TOGETHER, WE IMPROVE.</span><b>✦</b><span>YOUR AREA. YOUR VOICE.</span><b>✦</b>
           <span>SPOT IT. REPORT IT.</span><b>✦</b><span>TOGETHER, WE IMPROVE.</span><b>✦</b>
         </div>
       </div>

@@ -33,7 +33,7 @@ export default function Sidebar({ open, onClose }) {
           <div className="mission-card">
             <div className="mission-icon"><Icon name="ShieldCheck" size={19} /></div>
             <div>
-              <strong>City mission</strong>
+              <strong>Area mission</strong>
               <span>Report. Verify. Improve.</span>
             </div>
           </div>
