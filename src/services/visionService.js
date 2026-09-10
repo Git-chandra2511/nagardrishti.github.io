@@ -12,7 +12,8 @@ function fileToBase64(file) {
 
 export async function analyzeCivicImage(file) {
   const imageBase64 = await fileToBase64(file)
-  const localResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/analyze`, {
+  const apiHost = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:5000`
+  const localResponse = await fetch(`${apiHost}/api/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ imageBase64, mimeType: file.type || 'image/jpeg' }),
