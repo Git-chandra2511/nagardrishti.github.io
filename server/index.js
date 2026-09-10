@@ -32,6 +32,42 @@ app.get('/api/health', (_request, response) => {
   response.json({ success: true, data: { service: 'nagar-drishti-server', aiConfigured: Boolean(process.env.GEMINI_API_KEY) } })
 })
 
+app.post('/api/chat', async (request, response) => {
+  const { message, history = [] } = request.body || {}
+  if (typeof message !== 'string' || !message.trim()) {
+    return response.status(400).json({ success: false, error: { code: 'INVALID_MESSAGE', message: 'A message is required.' } })
+  }
+  if (!process.env.GEMINI_API_KEY) {
+    return response.status(503).json({ success: false, error: { code: 'AI_NOT_CONFIGURED', message: 'GEMINI_API_KEY is missing from server/.env.' } })
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+    const conversation = Array.isArray(history)
+      ? history.slice(-6).map(item => `${item.role === 'user' ? 'Citizen' : 'Drishti AI'}: ${String(item.text || '').slice(0, 800)}`).join('\n')
+      : ''
+    const result = await ai.models.generateContent({
+      model: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
+      contents: `You are Drishti AI, a concise and friendly civic assistant for Nagar Drishti.
+Help citizens with potholes, garbage or overflowing dustbins, waterlogging, damaged streetlights, GPS tagging, AI verification, report submission, issue tracking, and department routing.
+Do not claim that a report was submitted, an officer was contacted, or a live status was changed. Explain that the citizen should use the Scan page for those actions.
+Use short paragraphs or bullets and do not use markdown tables.
+
+Conversation:
+${conversation}
+
+Citizen: ${message.trim().slice(0, 1200)}
+Drishti AI:`,
+    })
+    const reply = result.text?.trim()
+    if (!reply) throw new Error('Empty assistant response')
+    return response.json({ success: true, data: { reply: reply.slice(0, 2000) } })
+  } catch (error) {
+    console.error('Chat request failed:', error.message)
+    return response.status(502).json({ success: false, error: { code: 'CHAT_FAILED', message: 'Drishti AI is temporarily unavailable.' } })
+  }
+})
+
 app.post('/api/analyze', async (request, response) => {
   const { imageBase64, mimeType } = request.body || {}
   if (typeof imageBase64 !== 'string' || !mimeType) {

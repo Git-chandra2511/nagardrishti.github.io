@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
 import BottomNav from './components/BottomNav'
+import DrishtiAI from './components/DrishtiAI'
 
 import Dashboard from './pages/Dashboard'
 import ScanPage from './pages/ScanPage'
@@ -143,6 +144,7 @@ export default function App() {
       </main>
 
       <BottomNav />
+      <DrishtiAI />
     </div>
   )
 }
