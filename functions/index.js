@@ -8,8 +8,8 @@
  */
 
 const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+const {onCall, HttpsError} = require("firebase-functions/https");
+const {GoogleGenAI} = require("@google/genai");
 
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
@@ -23,10 +23,61 @@ const logger = require("firebase-functions/logger");
 // this will be the maximum concurrent request count.
 setGlobalOptions({ maxInstances: 10 });
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+const allowedCategories = ["Pothole", "Garbage", "Streetlight", "Waterlogging"];
+const allowedPriorities = ["Low", "Medium", "High"];
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+exports.analyzeCivicImage = onCall(async (request) => {
+  if (!request.data || typeof request.data.imageBase64 !== "string" || !request.data.mimeType) {
+    throw new HttpsError("invalid-argument", "An image is required.");
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new HttpsError("failed-precondition", "Gemini is not configured on the backend.");
+  }
+
+  const ai = new GoogleGenAI({apiKey});
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [{
+      role: "user",
+      parts: [
+        {inlineData: {mimeType: request.data.mimeType, data: request.data.imageBase64}},
+        {text: [
+          "Classify this civic issue for a municipal reporting app.",
+          `Allowed categories: ${allowedCategories.join(", ")}.`,
+          "Return only valid JSON with category, confidence (0 to 1), priority (Low, Medium, or High), severity (1 to 10), and summary.",
+          "Do not include markdown fences or extra text.",
+        ].join(" ")},
+      ],
+    }],
+  });
+
+  let parsed;
+  try {
+    parsed = JSON.parse(response.text.trim().replace(/^```json\s*|\s*```$/g, ""));
+  } catch {
+    throw new HttpsError("internal", "The vision service returned an invalid response.");
+  }
+
+  if (!allowedCategories.includes(parsed.category)) {
+    throw new HttpsError("internal", "The vision service returned an unsupported category.");
+  }
+
+  const confidence = Number(parsed.confidence);
+  const severity = Number(parsed.severity);
+  if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1 ||
+      !Number.isInteger(severity) || severity < 1 || severity > 10 ||
+      !allowedPriorities.includes(parsed.priority)) {
+    throw new HttpsError("internal", "The vision service returned invalid issue metadata.");
+  }
+
+  return {
+    category: parsed.category,
+    confidence: Math.round(confidence * 100),
+    priority: parsed.priority,
+    severity,
+    summary: typeof parsed.summary === "string" ? parsed.summary.slice(0, 500) : "",
+    model: "gemini-2.5-flash",
+  };
+});

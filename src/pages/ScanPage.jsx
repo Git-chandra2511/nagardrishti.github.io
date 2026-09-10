@@ -1,17 +1,9 @@
 import { useRef, useState } from 'react'
 import { Camera, Check, Crosshair, ImagePlus, LoaderCircle, MapPin, RotateCcw, Sparkles, Upload, X } from 'lucide-react'
 import { DEPARTMENT_MAP, priorityFrom } from '../utils/civic'
+import { analyzeCivicImage } from '../services/visionService'
 
 const categories = ['Pothole', 'Garbage', 'Streetlight', 'Waterlogging']
-
-function classify(fileName = '') {
-  const name = fileName.toLowerCase()
-  let category = 'Pothole'
-  if (name.includes('garbage') || name.includes('trash') || name.includes('waste')) category = 'Garbage'
-  if (name.includes('light') || name.includes('lamp')) category = 'Streetlight'
-  if (name.includes('water') || name.includes('flood')) category = 'Waterlogging'
-  return { category, confidence: Math.floor(88 + Math.random() * 10) }
-}
 
 export default function ScanPage({ onSubmit }) {
   const inputRef = useRef(null)
@@ -35,14 +27,20 @@ export default function ScanPage({ onSubmit }) {
     setSubmitted(false)
   }
 
-  function runAI() {
+  async function runAI() {
+    if (!file) return
     setLoading(true)
-    setTimeout(() => {
-      const prediction = classify(file?.name)
+    try {
+      const prediction = await analyzeCivicImage(file)
       setResult(prediction)
       setManualCategory(prediction.category)
+    } catch (error) {
+      setResult(null)
+      setWrong(false)
+      window.alert(error.message || 'Unable to analyze this image. You can choose a category manually.')
+    } finally {
       setLoading(false)
-    }, 1100)
+    }
   }
 
   function getLocation() {
