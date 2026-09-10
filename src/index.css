@@ -339,6 +339,35 @@ body.light-theme .leaflet-control-zoom a:hover {
     padding-bottom: 72px;
   }
 
+  /* The AI result keeps its dark surface in light mode, so its content needs
+     explicit light colors instead of inheriting the page theme. */
+  body.light-theme .ai-result {
+    color: #eaf4ff;
+  }
+
+  body.light-theme .ai-result h2,
+  body.light-theme .ai-result strong {
+    color: #f4fbff !important;
+  }
+
+  body.light-theme .ai-result .panel-kicker,
+  body.light-theme .ai-result .confidence strong,
+  body.light-theme .ai-result .verify-btn.selected {
+    color: #16d7c2 !important;
+  }
+
+  body.light-theme .ai-result p,
+  body.light-theme .ai-result span,
+  body.light-theme .ai-result .verify-question span,
+  body.light-theme .ai-result .confidence span,
+  body.light-theme .ai-result .manual-select label {
+    color: #a9c4d8 !important;
+  }
+
+  body.light-theme .ai-result .verify-btn {
+    color: #d7e9f8 !important;
+  }
+
   @media (max-width: 760px) {
     .issue-detail-grid,.about-grid{grid-template-columns:1fr}
     .detail-timeline{margin-top:30px}
