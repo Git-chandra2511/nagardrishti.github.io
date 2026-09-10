@@ -139,7 +139,7 @@ export default function ScanPage({ onSubmit }) {
                 <div className="confidence"><strong>{result.confidence}%</strong><span>confidence</span></div>
               </div>
               <div className="confidence-bar"><i style={{ width: `${result.confidence}%` }} /></div>
-              <div className="verify-question"><strong>Does this look correct?</strong><span>Verify the AI tag before Nagar Drishti submits it.</span></div>
+              <div className="verify-question"><strong>Does this look correct?</strong><span>Verify with AI before Nagar Drishti submits it.</span></div>
               <div className="verify-actions">
                 <button className={verified ? 'verify-btn selected' : 'verify-btn'} onClick={() => { setVerified(true); setWrong(false) }}><Check size={18} /> Confirm</button>
                 <button className={wrong ? 'verify-btn wrong selected' : 'verify-btn wrong'} onClick={() => { setWrong(true); setVerified(false) }}><X size={18} /> Wrong tag</button>

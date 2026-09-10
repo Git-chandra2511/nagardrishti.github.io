@@ -37,7 +37,7 @@ export default function Dashboard({ reports }) {
           <div className="hero-copy">
             <div className="eyebrow"><span className="live-dot" /> LIVE CIVIC NETWORK <span className="live-pill">● ONLINE</span></div>
             <h1>Make your area <em>visible.</em></h1>
-            <p>Nagar Drishti turns citizens into a real-time sensing network. Scan a civic problem, verify the AI, and send it to the right department.</p>
+            <p>Nagar Drishti turns citizens into a real-time sensing network. Scan a civic problem, verify with AI, and send it to the right department.</p>
             <div className="hero-actions">
               <Link className="primary-btn" to="/scan"><Camera size={18} /> Report an issue <ArrowRight size={17} /></Link>
               <Link className="secondary-btn" to="/map"><MapPinned size={17} /> Explore map</Link>
