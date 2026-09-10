@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LoaderCircle, MessageCircle, Send, Sparkles, X } from 'lucide-react'
 
 const quickPrompts = [
@@ -20,6 +20,11 @@ export default function DrishtiAI() {
   const [messages, setMessages] = useState([
     { role: 'assistant', text: 'Hello! I am Drishti AI. I can help you report and understand civic issues.' },
   ])
+  const messagesEndRef = useRef(null)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, loading])
 
   async function sendMessage(event, preset) {
     event?.preventDefault()
@@ -61,9 +66,10 @@ export default function DrishtiAI() {
           <div className="drishti-chat-messages">
             {messages.map((message, index) => <div className={`drishti-message ${message.role}`} key={`${message.role}-${index}`}>{message.text}</div>)}
             {loading && <div className="drishti-message assistant"><LoaderCircle className="spin" size={15} /> Thinking…</div>}
+            <div ref={messagesEndRef} />
           </div>
           <div className="drishti-quick-prompts">
-            {quickPrompts.map(prompt => <button key={prompt} onClick={() => sendMessage(null, prompt)} disabled={loading}>{prompt}</button>)}
+            {quickPrompts.map(prompt => <button type="button" key={prompt} onClick={() => sendMessage(null, prompt)} disabled={loading}>{prompt}</button>)}
           </div>
           <form className="drishti-chat-form" onSubmit={sendMessage}>
             <input value={input} onChange={event => setInput(event.target.value)} placeholder="Ask Drishti AI…" aria-label="Message Drishti AI" />
