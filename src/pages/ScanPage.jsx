@@ -3,7 +3,7 @@ import { Camera, Check, Crosshair, ImagePlus, Languages, LoaderCircle, MapPin, M
 import { DEPARTMENT_MAP, priorityFrom } from '../utils/civic'
 import { analyzeCivicImage } from '../services/visionService'
 
-const categories = ['Pothole', 'Garbage', 'Streetlight', 'Waterlogging']
+const categories = ['Pothole', 'Garbage', 'Streetlight', 'Waterlogging', 'Hospital', 'Traffic Police', 'Narcotics', 'Fire']
 
 export default function ScanPage({ onSubmit }) {
   const inputRef = useRef(null)
@@ -13,8 +13,11 @@ export default function ScanPage({ onSubmit }) {
   const [verified, setVerified] = useState(false)
   const [wrong, setWrong] = useState(false)
   const [location, setLocation] = useState(null)
+  const [locationStatus, setLocationStatus] = useState('idle')
+  const [locationError, setLocationError] = useState('')
   const [loading, setLoading] = useState(false)
   const [analysisError, setAnalysisError] = useState('')
+  const [manualMode, setManualMode] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [manualCategory, setManualCategory] = useState('Pothole')
   const [voiceLanguage, setVoiceLanguage] = useState('hi-IN')
@@ -25,17 +28,31 @@ export default function ScanPage({ onSubmit }) {
 
   useEffect(() => () => {
     recognitionRef.current?.stop()
-  }, [])
+    if (preview) URL.revokeObjectURL(preview)
+  }, [preview])
 
   function chooseFile(next) {
     if (!next) return
+    if (!next.type.startsWith('image/')) {
+      setAnalysisError('Please choose a JPG, PNG, or WebP image.')
+      return
+    }
+    if (next.size > 20 * 1024 * 1024) {
+      setAnalysisError('This photo is too large for the browser. Choose an image under 20 MB.')
+      return
+    }
+    if (preview) URL.revokeObjectURL(preview)
     setFile(next)
     setPreview(URL.createObjectURL(next))
     setResult(null)
     setAnalysisError('')
+    setManualMode(false)
     setVerified(false)
     setWrong(false)
     setSubmitted(false)
+    setLocation(null)
+    setLocationStatus('idle')
+    setLocationError('')
   }
 
   function toggleVoice() {
@@ -82,28 +99,55 @@ export default function ScanPage({ onSubmit }) {
     if (!file) return
     setLoading(true)
     setAnalysisError('')
+    setManualMode(false)
     try {
       const prediction = await analyzeCivicImage(file)
       setResult(prediction)
       setManualCategory(prediction.category)
     } catch (error) {
-      setResult(null)
-      setWrong(false)
+      setResult({
+        category: manualCategory,
+        confidence: 0,
+        priority: priorityFrom(manualCategory, 100),
+        severity: 1,
+        summary: 'AI is temporarily unavailable. Select the correct category below to continue manually.',
+      })
+      setManualMode(true)
+      setWrong(true)
       setAnalysisError(error.message || 'Unable to analyze this image. You can choose a category manually.')
     } finally {
       setLoading(false)
     }
   }
 
+  useEffect(() => {
+    if ((verified || wrong) && !location && locationStatus === 'idle') getLocation()
+  }, [verified, wrong, location, locationStatus])
+
   function getLocation() {
     if (!navigator.geolocation) {
-      setLocation({ lat: 31.2548, lng: 75.7042 })
+      setLocation({ lat: 31.2548, lng: 75.7042, source: 'fallback' })
+      setLocationStatus('fallback')
+      setLocationError('This browser does not support GPS. Using the demo location.')
       return
     }
+    setLocationStatus('loading')
+    setLocationError('')
     navigator.geolocation.getCurrentPosition(
-      pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => setLocation({ lat: 31.2548, lng: 75.7042 }),
-      { enableHighAccuracy: true, timeout: 8000 },
+      pos => {
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, source: 'gps' })
+        setLocationStatus('success')
+      },
+      error => {
+        setLocation({ lat: 31.2548, lng: 75.7042, source: 'fallback' })
+        setLocationStatus('fallback')
+        setLocationError(
+          error.code === 1
+            ? 'GPS permission is blocked. Allow location for localhost in the browser, then tap Refresh.'
+            : 'GPS timed out or is unavailable. Using the demo location; tap Refresh to try again.',
+        )
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     )
   }
 
@@ -137,7 +181,7 @@ export default function ScanPage({ onSubmit }) {
           <h1>Your city has a new signal.</h1>
           <p>Your verified <strong>{wrong ? manualCategory : result.category}</strong> report has been tagged with GPS and routed to <strong>{DEPARTMENT_MAP[wrong ? manualCategory : result.category]}</strong>.</p>
           <div className="success-stats"><span>+10 Nagar Points</span><span>AI verified</span><span>GPS tagged</span></div>
-          <button className="primary-btn" onClick={() => { setFile(null); setPreview(''); setResult(null); setSubmitted(false); setLocation(null) }}><RotateCcw size={17} /> Scan another issue</button>
+          <button className="primary-btn" onClick={() => { if (preview) URL.revokeObjectURL(preview); setFile(null); setPreview(''); setResult(null); setManualMode(false); setSubmitted(false); setLocation(null); setLocationStatus('idle'); setLocationError('') }}><RotateCcw size={17} /> Scan another issue</button>
         </div>
       </div>
     )
@@ -178,12 +222,12 @@ export default function ScanPage({ onSubmit }) {
                   </div>
                 )}
                 {result && (
-                  <div className="scan-success" aria-label="Image analyzed successfully">
+                  <div className="scan-success" aria-label={manualMode ? 'Manual category required' : 'Image analyzed successfully'}>
                     <Check size={18} />
-                    <span>SCAN COMPLETE</span>
+                    <span>{manualMode ? 'MANUAL REVIEW' : 'SCAN COMPLETE'}</span>
                   </div>
                 )}
-                <button className="remove-photo" onClick={() => { setFile(null); setPreview(''); setResult(null); setAnalysisError('') }}><X size={17} /></button>
+                <button className="remove-photo" onClick={() => { if (preview) URL.revokeObjectURL(preview); setFile(null); setPreview(''); setResult(null); setManualMode(false); setAnalysisError(''); setLocation(null); setLocationStatus('idle'); setLocationError('') }}><X size={17} /></button>
                 <div className="preview-overlay">
                   <button className="secondary-btn" onClick={() => inputRef.current?.click()}><Upload size={16} /> Replace</button>
                   {!result && <button className="primary-btn" onClick={runAI}><Sparkles size={16} /> Analyze with AI</button>}
@@ -221,7 +265,7 @@ export default function ScanPage({ onSubmit }) {
           {result && !loading && (
             <div className="ai-result">
               <div className="result-top">
-                <div><span className="panel-kicker">AI PREDICTION</span><h2>{result.category}</h2><p>Recommended department: <strong>{DEPARTMENT_MAP[result.category]}</strong></p></div>
+                <div><span className="panel-kicker">{manualMode ? 'MANUAL FALLBACK' : 'AI PREDICTION'}</span><h2>{result.category}</h2><p>Recommended department: <strong>{DEPARTMENT_MAP[result.category]}</strong></p></div>
                 <div className="confidence"><strong>{result.confidence}%</strong><span>confidence</span></div>
               </div>
               <div className="confidence-bar"><i style={{ width: `${result.confidence}%` }} /></div>
@@ -249,8 +293,8 @@ export default function ScanPage({ onSubmit }) {
           {result && (verified || wrong) && (
             <div className="location-card">
               <div className="location-icon"><MapPin size={20} /></div>
-              <div><strong>Location tag</strong><span>{location ? `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}` : 'GPS location not captured yet'}</span></div>
-              <button className="secondary-btn" onClick={getLocation}><Crosshair size={16} /> {location ? 'Refresh' : 'Get GPS'}</button>
+              <div><strong>Location tag</strong><span>{locationStatus === 'loading' ? 'Requesting GPS location…' : location ? `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}${location.source === 'fallback' ? ' • demo fallback' : ''}` : 'GPS location not captured yet'}{locationError && <small>{locationError}</small>}</span></div>
+              <button className="secondary-btn" onClick={getLocation} disabled={locationStatus === 'loading'}><Crosshair size={16} /> {locationStatus === 'loading' ? 'Locating…' : location ? 'Refresh' : 'Get GPS'}</button>
             </div>
           )}
 

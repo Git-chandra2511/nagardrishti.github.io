@@ -1,11 +1,40 @@
 import 'dotenv/config'
+import crypto from 'node:crypto'
 import cors from 'cors'
 import express from 'express'
 import { GoogleGenAI } from '@google/genai'
 
 const app = express()
 const port = Number(process.env.PORT || 5000)
-const allowedCategories = ['Pothole', 'Garbage', 'Streetlight', 'Waterlogging']
+const allowedCategories = ['Pothole', 'Garbage', 'Streetlight', 'Waterlogging', 'Hospital', 'Traffic Police', 'Narcotics', 'Fire']
+const defaultModel = 'gemini-3.6-flash'
+const fallbackModels = ['gemini-2.0-flash', 'gemini-2.5-flash']
+const whatsappApiVersion = process.env.WHATSAPP_API_VERSION || 'v23.0'
+
+function modelCandidates() {
+  return [...new Set([process.env.GEMINI_MODEL, defaultModel, ...fallbackModels].filter(Boolean))]
+}
+
+async function generateWithModel(ai, contents) {
+  let lastError
+  for (const model of modelCandidates()) {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const result = await ai.models.generateContent({ model, contents })
+        return { result, model }
+      } catch (error) {
+        lastError = error
+        const message = String(error?.message || '').toLowerCase()
+        const retryable = message.includes('fetch failed') || message.includes('network') || message.includes('temporarily unavailable') || message.includes('503')
+        const unsupported = message.includes('not found') || message.includes('unsupported') || message.includes('invalid')
+        if (!retryable && !unsupported) throw error
+        if (retryable && attempt === 0) await new Promise(resolve => setTimeout(resolve, 1200))
+        if (unsupported) break
+      }
+    }
+  }
+  throw lastError
+}
 
 function normalizeCategory(value) {
   const category = String(value || '').toLowerCase()
@@ -13,6 +42,10 @@ function normalizeCategory(value) {
   if (category.includes('streetlight') || category.includes('street light') || category.includes('lamp') || category.includes('electric')) return 'Streetlight'
   if (category.includes('garbage') || category.includes('dustbin') || category.includes('trash') || category.includes('waste') || category.includes('litter')) return 'Garbage'
   if (category.includes('pothole') || category.includes('road') || category.includes('crack')) return 'Pothole'
+  if (category.includes('hospital') || category.includes('medical') || category.includes('ambulance')) return 'Hospital'
+  if (category.includes('traffic') || category.includes('signal') || category.includes('vehicle')) return 'Traffic Police'
+  if (category.includes('narcotic') || category.includes('drug')) return 'Narcotics'
+  if (category.includes('fire') || category.includes('smoke') || category.includes('burn')) return 'Fire'
   return null
 }
 
@@ -41,7 +74,73 @@ app.use(cors({
     return callback(new Error('Origin not allowed by local development server.'))
   },
 }))
-app.use(express.json({ limit: '12mb' }))
+app.use(express.json({
+  limit: '12mb',
+  verify: (request, _response, buffer) => {
+    request.rawBody = buffer
+  },
+}))
+
+function isValidWhatsAppSignature(request) {
+  const signature = request.get('x-hub-signature-256')
+  const appSecret = process.env.WHATSAPP_APP_SECRET
+  if (!signature || !appSecret || !request.rawBody) return false
+  const expected = `sha256=${crypto.createHmac('sha256', appSecret).update(request.rawBody).digest('hex')}`
+  return signature.length === expected.length && crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+}
+
+async function sendWhatsAppText(to, body) {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID
+  if (!token || !phoneNumberId) throw new Error('WhatsApp credentials are not configured')
+  const result = await fetch(`https://graph.facebook.com/${whatsappApiVersion}/${phoneNumberId}/messages`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to,
+      type: 'text',
+      text: { preview_url: false, body: body.slice(0, 4096) },
+    }),
+  })
+  if (!result.ok) throw new Error(`WhatsApp API returned ${result.status}: ${await result.text()}`)
+}
+
+app.get('/api/whatsapp/webhook', (request, response) => {
+  const mode = request.query['hub.mode']
+  const token = request.query['hub.verify_token']
+  const challenge = request.query['hub.challenge']
+  if (mode === 'subscribe' && token && token === process.env.WHATSAPP_VERIFY_TOKEN) {
+    return response.status(200).send(challenge)
+  }
+  return response.sendStatus(403)
+})
+
+app.post('/api/whatsapp/webhook', async (request, response) => {
+  if (!isValidWhatsAppSignature(request)) return response.sendStatus(403)
+  response.sendStatus(200)
+
+  const entries = Array.isArray(request.body?.entry) ? request.body.entry : []
+  for (const entry of entries) {
+    const changes = Array.isArray(entry.changes) ? entry.changes : []
+    for (const change of changes) {
+      const messages = change.value?.messages
+      if (!Array.isArray(messages)) continue
+      for (const message of messages) {
+        if (message.type !== 'text' || !message.from || !message.text?.body) continue
+        try {
+          await sendWhatsAppText(message.from, `Nagar Drishti received your message:\n\n${message.text.body.trim().slice(0, 500)}\n\nTo report a civic issue, reply with its location and category, or use the Nagar Drishti app.`)
+        } catch (error) {
+          console.error('WhatsApp reply failed:', error.message)
+        }
+      }
+    }
+  }
+})
 
 app.get('/api/health', (_request, response) => {
   response.json({ success: true, data: { service: 'nagar-drishti-server', aiConfigured: Boolean(process.env.GEMINI_API_KEY) } })
@@ -61,9 +160,7 @@ app.post('/api/chat', async (request, response) => {
     const conversation = Array.isArray(history)
       ? history.slice(-6).map(item => `${item.role === 'user' ? 'Citizen' : 'Drishti AI'}: ${String(item.text || '').slice(0, 800)}`).join('\n')
       : ''
-    const result = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
-      contents: `You are Drishti AI, a concise and friendly civic assistant for Nagar Drishti.
+    const { result } = await generateWithModel(ai, `You are Drishti AI, a concise and friendly civic assistant for Nagar Drishti.
 Help citizens with potholes, garbage or overflowing dustbins, waterlogging, damaged streetlights, GPS tagging, AI verification, report submission, issue tracking, and department routing.
 Do not claim that a report was submitted, an officer was contacted, or a live status was changed. Explain that the citizen should use the Scan page for those actions.
 Use short paragraphs or bullets and do not use markdown tables.
@@ -72,8 +169,7 @@ Conversation:
 ${conversation}
 
 Citizen: ${message.trim().slice(0, 1200)}
-Drishti AI:`,
-    })
+Drishti AI:`)
     const reply = result.text?.trim()
     if (!reply) throw new Error('Empty assistant response')
     return response.json({ success: true, data: { reply: reply.slice(0, 2000) } })
@@ -94,16 +190,14 @@ app.post('/api/analyze', async (request, response) => {
 
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
-    const result = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
-      contents: [{
+    const contents = [{
         role: 'user',
         parts: [
           { inlineData: { mimeType, data: imageBase64 } },
           { text: `Classify this civic issue. Allowed categories: ${allowedCategories.join(', ')}. Return only JSON with category, confidence from 0 to 1, priority (Low, Medium, High), severity from 1 to 10, and summary.` },
         ],
-      }],
-    })
+    }]
+    const { result, model } = await generateWithModel(ai, contents)
     const parsed = parseModelJson(result.text)
     const rawConfidence = Number(parsed.confidence)
     const confidence = rawConfidence > 1 ? rawConfidence / 100 : rawConfidence
@@ -123,7 +217,7 @@ app.post('/api/analyze', async (request, response) => {
         priority,
         severity,
         summary: typeof parsed.summary === 'string' ? parsed.summary.slice(0, 500) : '',
-        model: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
+        model,
       },
     })
   } catch (error) {
@@ -135,6 +229,15 @@ app.post('/api/analyze', async (request, response) => {
         error: {
           code: 'AI_QUOTA_EXCEEDED',
           message: 'AI image-analysis quota is temporarily exceeded. Try again later or choose the category manually.',
+        },
+      })
+    }
+    if (errorText.toLowerCase().includes('fetch failed') || errorText.toLowerCase().includes('network')) {
+      return response.status(502).json({
+        success: false,
+        error: {
+          code: 'AI_PROVIDER_UNAVAILABLE',
+          message: 'The AI provider could not be reached. Please try Analyze again in a few seconds.',
         },
       })
     }

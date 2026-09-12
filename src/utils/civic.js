@@ -3,20 +3,38 @@ export const DEPARTMENT_MAP = {
   Garbage: 'Municipal Corporation',
   Streetlight: 'Electricity Board',
   Waterlogging: 'Drainage Department',
+  Hospital: 'Hospital Department',
+  'Traffic Police': 'Traffic Police Department',
+  Narcotics: 'Narcotics Department',
+  Fire: 'Fire Department',
 }
+
+export const DEPARTMENT_OPTIONS = [
+  'PWD',
+  'Municipal Corporation',
+  'Electricity Board',
+  'Fire Department',
+  'Hospital Department',
+  'Traffic Police',
+  'Traffic Control Room',
+  'Drainage Department',
+]
 
 export const CATEGORY_META = {
   Pothole: { icon: 'Construction', label: 'Pothole', color: 'amber' },
   Garbage: { icon: 'Trash2', label: 'Garbage', color: 'green' },
   Streetlight: { icon: 'Lightbulb', label: 'Streetlight', color: 'violet' },
   Waterlogging: { icon: 'Droplets', label: 'Waterlogging', color: 'cyan' },
+  Hospital: { icon: 'Hospital', label: 'Hospital', color: 'blue' },
+  'Traffic Police': { icon: 'TrafficCone', label: 'Traffic Police', color: 'orange' },
+  Narcotics: { icon: 'ShieldAlert', label: 'Narcotics', color: 'violet' },
+  Fire: { icon: 'Flame', label: 'Fire', color: 'red' },
 }
 
 export const NAV_ITEMS = [
   { path: '/', label: 'Dashboard', icon: 'LayoutDashboard' },
   { path: '/scan', label: 'Scan Issue', icon: 'ScanLine' },
   { path: '/map', label: 'Civic Map', icon: 'Map' },
-  { path: '/feed', label: 'Civic Feed', icon: 'Rss' },
   { path: '/leaderboard', label: 'Leaderboard', icon: 'Trophy' },
   { path: '/profile', label: 'Profile', icon: 'UserRound' },
 ]

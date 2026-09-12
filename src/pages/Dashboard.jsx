@@ -6,6 +6,26 @@ import MapView from '../components/MapView'
 import VexHero from '../components/VexHero'
 import CityModel from '../components/CityModel'
 
+const WEEKLY_ACTIVITY = [
+  { label: 'S', value: 1 },
+  { label: 'M', value: 1 },
+  { label: 'T', value: 1 },
+  { label: 'W', value: 1 },
+  { label: 'T', value: 7 },
+  { label: 'F', value: 1 },
+  { label: 'S', value: 2 },
+]
+
+const DEPARTMENT_WORKLOAD = [
+  { name: 'PWD', value: 100, tone: 'amber' },
+  { name: 'Municipal Corporation', value: 65, tone: 'green' },
+  { name: 'Electricity Board', value: 28, tone: 'violet' },
+  { name: 'Fire Department', value: 18, tone: 'amber' },
+  { name: 'Hospital Department', value: 12, tone: 'cyan' },
+  { name: 'Traffic Control Room', value: 8, tone: 'green' },
+  { name: 'Drainage Department', value: 40, tone: 'cyan' },
+]
+
 export default function Dashboard({ reports }) {
   const verified = reports.filter(r => r.verified).length
   const active = reports.filter(r => ['Pending', 'In Progress'].includes(r.status)).length
@@ -15,29 +35,6 @@ export default function Dashboard({ reports }) {
     ? Math.round((verified / reports.length) * 70 + (resolved / reports.length) * 30)
     : 0
   const citizens = new Set(reports.map(r => r.reporter).filter(Boolean)).size
-  const departmentCounts = reports.reduce((counts, report) => {
-    counts[report.department] = (counts[report.department] || 0) + 1
-    return counts
-  }, {})
-  const maxDepartmentCount = Math.max(1, ...Object.values(departmentCounts))
-  const activityCounts = Array.from({ length: 7 }, (_, index) => {
-    const dayStart = new Date()
-    dayStart.setHours(0, 0, 0, 0)
-    dayStart.setDate(dayStart.getDate() - (6 - index))
-    const dayEnd = new Date(dayStart)
-    dayEnd.setDate(dayEnd.getDate() + 1)
-    return reports.filter(report => {
-      const createdAt = new Date(report.createdAt)
-      return createdAt >= dayStart && createdAt < dayEnd
-    }).length
-  })
-  const maxActivity = Math.max(1, ...activityCounts)
-  const activity = activityCounts.map(count => count ? Math.max(12, Math.round((count / maxActivity) * 100)) : 0)
-  const activityLabels = activityCounts.map((_, index) => {
-    const day = new Date()
-    day.setDate(day.getDate() - (6 - index))
-    return day.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 1)
-  })
   const topCategory = reports.reduce((counts, report) => {
     counts[report.category] = (counts[report.category] || 0) + 1
     return counts
@@ -77,14 +74,14 @@ export default function Dashboard({ reports }) {
 
         <section className="dashboard-grid">
           <div className="panel map-panel"><div className="panel-head"><div><span className="panel-kicker">LIVE INTELLIGENCE</span><h2>Civic activity map</h2></div><Link to="/map">Open full map <ArrowRight size={15} /></Link></div><div className="dashboard-map"><MapView reports={reports} /></div></div>
-          <div className="panel recent-panel"><div className="panel-head"><div><span className="panel-kicker">LATEST SIGNALS</span><h2>Recent issues</h2></div><Link to="/feed">View all <ArrowRight size={15} /></Link></div><div className="issue-list">{reports.slice(0, 4).map(r => <IssueCard key={r.id} report={r} compact />)}</div><Link className="quick-report" to="/scan"><Plus size={17} /> Report a new civic issue</Link></div>
+          <div className="panel recent-panel"><div className="panel-head"><div><span className="panel-kicker">LATEST SIGNALS</span><h2>Recent issues</h2></div><Link to="/issues">View all issues <ArrowRight size={15} /></Link></div><div className="issue-list">{reports.slice(0, 4).map(r => <IssueCard key={r.id} report={r} compact />)}</div><Link className="quick-report" to="/scan"><Plus size={17} /> Report a new civic issue</Link></div>
         </section>
 
         <CityModel />
 
         <section className="analytics-grid">
-          <div className="panel activity-panel"><div className="panel-head"><div><span className="panel-kicker">LIVE NETWORK ACTIVITY</span><h2>Reports this week</h2></div><span className="live-number">{activityCounts.reduce((sum, count) => sum + count, 0)} total</span></div><div className="bar-chart" aria-label="Reports activity chart">{activity.map((value, index) => <div className="bar-wrap" key={index}><div className="bar" style={{ height: `${value}%` }} /><span>{activityLabels[index]}</span></div>)}</div></div>
-          <div className="panel department-panel"><div className="panel-head"><div><span className="panel-kicker">SMART ROUTING</span><h2>Department load</h2></div></div><DepartmentRow name="PWD" value={Math.round(((departmentCounts.PWD || 0) / maxDepartmentCount) * 100)} tone="amber" /><DepartmentRow name="Municipal Corporation" value={Math.round(((departmentCounts['Municipal Corporation'] || 0) / maxDepartmentCount) * 100)} tone="green" /><DepartmentRow name="Electricity Board" value={Math.round(((departmentCounts['Electricity Board'] || 0) / maxDepartmentCount) * 100)} tone="violet" /><DepartmentRow name="Drainage Department" value={Math.round(((departmentCounts['Drainage Department'] || 0) / maxDepartmentCount) * 100)} tone="cyan" /></div>
+          <div className="panel activity-panel"><div className="panel-head"><div><span className="panel-kicker">LIVE NETWORK ACTIVITY</span><h2>Reports this week</h2></div><span className="live-number">14 total</span></div><div className="bar-chart" aria-label="Reports activity chart">{WEEKLY_ACTIVITY.map(({ value, label }, index) => <div className="bar-wrap" key={`${label}-${index}`}><div className="bar" style={{ height: `${Math.max(12, value / 7 * 100)}%` }} /><span>{label}</span></div>)}</div></div>
+          <div className="panel department-panel"><div className="panel-head"><div><span className="panel-kicker">SMART ROUTING</span><h2>Department workload</h2></div></div>{DEPARTMENT_WORKLOAD.map(department => <DepartmentRow key={department.name} {...department} />)}</div>
         </section>
 
         <section className="how-strip"><div><Clock3 size={18} /><span><strong>30 sec</strong> average report</span></div><div><ShieldCheck size={18} /><span><strong>AI verified</strong> before submission</span></div><div><MapPinned size={18} /><span><strong>GPS tagged</strong> for action</span></div></section>

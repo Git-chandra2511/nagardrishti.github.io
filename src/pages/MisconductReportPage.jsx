@@ -3,10 +3,14 @@ import { Camera, Check, FileWarning, ImagePlus, Send, ShieldCheck, X } from 'luc
 
 const officialDepartments = [
   'Traffic Police',
+  'Traffic Control Room',
+  'Fire Department',
+  'Hospital Department',
   'Municipal Corporation',
   'Police Department',
   'Public Works Department',
   'Electricity Board',
+  'Electricity Emergency Cell',
   'Other Government Department',
 ]
 

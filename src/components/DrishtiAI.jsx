@@ -57,7 +57,7 @@ export default function DrishtiAI() {
   return (
     <div className={`drishti-ai ${open ? 'is-open' : ''}`}>
       {open && (
-        <section className="drishti-chat-panel" aria-label="Drishti AI chat">
+        <section className="drishti-chat-panel" role="dialog" aria-modal="false" aria-label="Drishti AI chat">
           <header className="drishti-chat-header">
             <div className="drishti-chat-brand"><div><Sparkles size={17} /></div><span><strong>Drishti AI</strong><small>Civic help assistant</small></span></div>
             <button className="drishti-close" onClick={() => setOpen(false)} aria-label="Close Drishti AI"><X size={18} /></button>

@@ -6,7 +6,6 @@ const titles = {
   '/': ['Civic Command Center', 'Real-time view of your area'],
   '/scan': ['Scan Civic Issue', 'AI-powered issue detection'],
   '/map': ['Civic Map', 'Live issue intelligence'],
-  '/feed': ['Civic Feed', 'See what citizens are reporting'],
   '/leaderboard': ['Nagar Leaderboard', 'Every verified report counts'],
   '/profile': ['Citizen Profile', 'Your civic contribution'],
   '/issues': ['Issue Operations', 'Search and track civic issues'],

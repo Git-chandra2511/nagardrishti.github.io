@@ -1,7 +1,16 @@
 import Icon from './Icon'
 import { formatTime } from '../utils/civic'
 
-const icons = { Pothole: 'Construction', Garbage: 'Trash2', Streetlight: 'Lightbulb', Waterlogging: 'Droplets' }
+const icons = {
+  Pothole: 'Construction',
+  Garbage: 'Trash2',
+  Streetlight: 'Lightbulb',
+  Waterlogging: 'Droplets',
+  Hospital: 'Hospital',
+  'Traffic Police': 'TrafficCone',
+  Narcotics: 'ShieldAlert',
+  Fire: 'Flame',
+}
 
 export default function IssueCard({ report, compact = false }) {
   return (

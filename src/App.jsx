@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 
 import Sidebar from './components/Sidebar'
@@ -6,21 +6,22 @@ import Topbar from './components/Topbar'
 import BottomNav from './components/BottomNav'
 import DrishtiAI from './components/DrishtiAI'
 
-import Dashboard from './pages/Dashboard'
-import ScanPage from './pages/ScanPage'
-import MapPage from './pages/MapPage'
-import FeedPage from './pages/FeedPage'
-import LeaderboardPage from './pages/LeaderboardPage'
-import ProfilePage from './pages/ProfilePage'
-import IssueDetailsPage from './pages/IssueDetailsPage'
-import IssuesPage from './pages/IssuesPage'
-import AnalyticsPage from './pages/AnalyticsPage'
-import AboutPage from './pages/AboutPage'
-import AdminPage from './pages/AdminPage'
 import LoginPage from './pages/LoginPage'
-import MisconductReportPage from './pages/MisconductReportPage'
-import SwachhBharatPage from './pages/SwachhBharatPage'
-import CrossReportingPage from './pages/CrossReportingPage'
+import IntroPage from './pages/IntroPage'
+
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const ScanPage = lazy(() => import('./pages/ScanPage'))
+const MapPage = lazy(() => import('./pages/MapPage'))
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage'))
+const IssueDetailsPage = lazy(() => import('./pages/IssueDetailsPage'))
+const IssuesPage = lazy(() => import('./pages/IssuesPage'))
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
+const AboutPage = lazy(() => import('./pages/AboutPage'))
+const AdminPage = lazy(() => import('./pages/AdminPage'))
+const MisconductReportPage = lazy(() => import('./pages/MisconductReportPage'))
+const SwachhBharatPage = lazy(() => import('./pages/SwachhBharatPage'))
+const CrossReportingPage = lazy(() => import('./pages/CrossReportingPage'))
 
 import {
   getReports,
@@ -32,7 +33,6 @@ import {
   saveAuthSession,
 } from './services/localStore'
 import { findPossibleDuplicates, normalizeIssue } from './services/issueService'
-import { fetchRemoteReports, saveRemoteReport } from './services/firestoreStore'
 
 export default function App() {
   const location = useLocation()
@@ -58,7 +58,8 @@ export default function App() {
 
   useEffect(() => {
     let active = true
-    fetchRemoteReports()
+    import('./services/firestoreStore')
+      .then(({ fetchRemoteReports }) => fetchRemoteReports())
       .then(remoteReports => {
         if (active && remoteReports?.length) setReports(remoteReports)
       })
@@ -74,8 +75,12 @@ export default function App() {
     return reports.filter((report) => report.reporter === 'You').length
   }, [reports])
 
-  if (!session && location.pathname !== '/login') {
-    return <Navigate to="/login" replace />
+  if (!session && location.pathname !== '/login' && location.pathname !== '/intro') {
+    return <Navigate to="/intro" replace />
+  }
+
+  if (!session && (location.pathname === '/' || location.pathname === '/intro')) {
+    return <IntroPage />
   }
 
   if (location.pathname === '/login') {
@@ -106,9 +111,28 @@ export default function App() {
     setUser(nextUser)
     saveReports(nextReports)
     saveUser(nextUser)
-    saveRemoteReport(nextReport).catch(error => {
-      console.warn('Report saved locally, but Firestore sync failed.', error)
+    import('./services/firestoreStore')
+      .then(({ saveRemoteReport }) => saveRemoteReport(nextReport))
+      .catch(error => {
+        console.warn('Report saved locally, but Firestore sync failed.', error)
+      })
+  }
+
+  function updateReport(reportId, changes) {
+    const nextReports = reports.map(report => {
+      const currentId = report.issueId || report.id
+      return currentId === reportId ? normalizeIssue({ ...report, ...changes }) : report
     })
+    const updatedReport = nextReports.find(report => (report.issueId || report.id) === reportId)
+    setReports(nextReports)
+    saveReports(nextReports)
+    if (updatedReport) {
+      import('./services/firestoreStore')
+        .then(({ saveRemoteReport }) => saveRemoteReport(updatedReport))
+        .catch(error => {
+          console.warn('Report updated locally, but Firestore sync failed.', error)
+        })
+    }
   }
 
   return (
@@ -126,7 +150,8 @@ export default function App() {
           onLogout={handleLogout}
         />
 
-        <Routes>
+        <Suspense fallback={<div className="route-loading" role="status">Loading Nagar Drishti…</div>}>
+          <Routes>
           <Route
             path="/"
             element={<Dashboard reports={reports} user={user} />}
@@ -143,11 +168,6 @@ export default function App() {
           <Route
             path="/map"
             element={<MapPage reports={reports} />}
-          />
-
-          <Route
-            path="/feed"
-            element={<FeedPage reports={reports} />}
           />
 
           <Route
@@ -172,13 +192,14 @@ export default function App() {
           <Route path="/analytics" element={<AnalyticsPage reports={reports} />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/officer/*" element={<AnalyticsPage reports={reports} officerMode />} />
-          <Route path="/admin/*" element={session.role === 'admin' ? <AdminPage reports={reports} /> : <Navigate to="/" replace />} />
+          <Route path="/admin/*" element={session.role === 'admin' ? <AdminPage reports={reports} onUpdateReport={updateReport} /> : <Navigate to="/" replace />} />
 
           <Route
             path="*"
             element={<Navigate to="/" replace />}
           />
-        </Routes>
+          </Routes>
+        </Suspense>
       </main>
 
       <BottomNav />

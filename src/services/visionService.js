@@ -10,37 +10,65 @@ function fileToBase64(file) {
   })
 }
 
-function optimizeImage(file) {
+async function optimizeImage(file) {
+  const maxDimension = 1024
+  let bitmap
+  try {
+    if ('createImageBitmap' in window) {
+      bitmap = await createImageBitmap(file, { resizeWidth: maxDimension, resizeHeight: maxDimension, resizeQuality: 'medium' })
+    }
+  } catch {
+    bitmap = null
+  }
+
+  if (!bitmap) {
+    bitmap = await new Promise((resolve, reject) => {
+      const image = new Image()
+      const objectUrl = URL.createObjectURL(file)
+      image.onload = () => {
+        URL.revokeObjectURL(objectUrl)
+        resolve(image)
+      }
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        reject(new Error('Unable to read this image.'))
+      }
+      image.src = objectUrl
+    })
+  }
+
+  const sourceWidth = bitmap.width || bitmap.naturalWidth
+  const sourceHeight = bitmap.height || bitmap.naturalHeight
+  const scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(sourceWidth * scale))
+  canvas.height = Math.max(1, Math.round(sourceHeight * scale))
+  const context = canvas.getContext('2d', { alpha: false })
+  if (!context) {
+    bitmap.close?.()
+    throw new Error('Unable to prepare this image in the browser.')
+  }
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  bitmap.close?.()
   return new Promise((resolve, reject) => {
-    const image = new Image()
-    const objectUrl = URL.createObjectURL(file)
-    image.onload = () => {
-      URL.revokeObjectURL(objectUrl)
-      const maxDimension = 1280
-      const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight))
-      const canvas = document.createElement('canvas')
-      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale))
-      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
-      canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height)
-      canvas.toBlob(blob => {
-        if (blob) resolve(blob)
-        else reject(new Error('Unable to prepare this image.'))
-      }, 'image/jpeg', .78)
-    }
-    image.onerror = () => {
-      URL.revokeObjectURL(objectUrl)
-      reject(new Error('Unable to read this image.'))
-    }
-    image.src = objectUrl
+    canvas.toBlob(blob => {
+      canvas.width = 1
+      canvas.height = 1
+      if (blob) resolve(blob)
+      else reject(new Error('Unable to prepare this image.'))
+    }, 'image/jpeg', .68)
   })
 }
 
 export async function analyzeCivicImage(file) {
+  if (!file?.type?.startsWith('image/')) throw new Error('Please choose a JPG, PNG, or WebP image.')
+  if (file.size > 20 * 1024 * 1024) throw new Error('This photo is too large for the browser. Choose an image under 20 MB.')
   const optimizedFile = file.type.startsWith('image/') ? await optimizeImage(file) : file
   const imageBase64 = await fileToBase64(optimizedFile)
   const apiHost = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || ''
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), 90000)
+  let localError
   try {
     const localResponse = await fetch(`${apiHost}/api/analyze`, {
       method: 'POST',
@@ -65,16 +93,16 @@ export async function analyzeCivicImage(file) {
     throw new Error('AI server returned an empty response. Start it with: npm run server')
   } catch (error) {
     if (error.name === 'AbortError') throw new Error('Image analysis timed out after 90 seconds. Try a smaller or clearer photo.')
-    if (error.message === 'Failed to fetch') {
-      throw new Error('AI server is not running. Start it with: npm start --prefix server')
-    }
-    throw error
+    localError = error
   } finally {
     window.clearTimeout(timeout)
   }
 
-  if (!firebaseEnabled || !functions) {
-    throw new Error('The local Node server is unavailable. Start it with: npm start --prefix server')
+  if (localError?.message !== 'Failed to fetch' || !firebaseEnabled || !functions) {
+    if (localError?.message === 'Failed to fetch') {
+      throw new Error('AI server is not running. Start it with: npm run server')
+    }
+    throw localError
   }
   const analyze = httpsCallable(functions, 'analyzeCivicImage')
   const result = await analyze({ imageBase64, mimeType: file.type || 'image/jpeg' })

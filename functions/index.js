@@ -23,7 +23,7 @@ const {GoogleGenAI} = require("@google/genai");
 // this will be the maximum concurrent request count.
 setGlobalOptions({ maxInstances: 10 });
 
-const allowedCategories = ["Pothole", "Garbage", "Streetlight", "Waterlogging"];
+const allowedCategories = ["Pothole", "Garbage", "Streetlight", "Waterlogging", "Hospital", "Traffic Police", "Narcotics", "Fire"];
 const allowedPriorities = ["Low", "Medium", "High"];
 function normalizeCategory(value) {
   const category = String(value || "").toLowerCase();
@@ -31,6 +31,10 @@ function normalizeCategory(value) {
   if (category.includes("streetlight") || category.includes("street light") || category.includes("lamp") || category.includes("electric")) return "Streetlight";
   if (category.includes("garbage") || category.includes("dustbin") || category.includes("trash") || category.includes("waste") || category.includes("litter")) return "Garbage";
   if (category.includes("pothole") || category.includes("road") || category.includes("crack")) return "Pothole";
+  if (category.includes("hospital") || category.includes("medical") || category.includes("ambulance")) return "Hospital";
+  if (category.includes("traffic") || category.includes("signal") || category.includes("vehicle")) return "Traffic Police";
+  if (category.includes("narcotic") || category.includes("drug")) return "Narcotics";
+  if (category.includes("fire") || category.includes("smoke") || category.includes("burn")) return "Fire";
   return null;
 }
 
